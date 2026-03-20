@@ -1,10 +1,15 @@
 import 'package:auth0_flutter/auth0_flutter.dart';
+import 'package:auth0_flutter/auth0_flutter_web.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config.dart';
 
 class AuthService extends ChangeNotifier {
-  final Auth0 _auth0 = Auth0(auth0Domain, auth0ClientId);
+  // Web uses Auth0Web; mobile uses Auth0
+  final Auth0Web? _auth0Web = kIsWeb
+      ? Auth0Web(auth0Domain, auth0ClientId)
+      : null;
+  final Auth0? _auth0 = kIsWeb ? null : Auth0(auth0Domain, auth0ClientId);
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   UserProfile? _user;
@@ -19,19 +24,38 @@ class AuthService extends ChangeNotifier {
   bool get loading => _loading;
 
   Future<void> init() async {
-    _refreshToken = await _storage.read(key: 'refresh_token');
-    if (_refreshToken != null) {
+    if (kIsWeb) {
+      // On web, onLoad() handles returning users after redirect
       try {
-        final credentials = await _auth0.api.renewCredentials(
-          refreshToken: _refreshToken!,
+        final creds = await _auth0Web!.onLoad(
+          scopes: {'openid', 'profile', 'email', 'offline_access'},
+          useRefreshTokens: true,
+          cacheLocation: CacheLocation.localStorage,
         );
-        _user = credentials.user;
-        _accessToken = credentials.accessToken;
-        _refreshToken = credentials.refreshToken ?? _refreshToken;
-        await _storage.write(key: 'refresh_token', value: _refreshToken);
-      } catch (_) {
-        await _storage.delete(key: 'refresh_token');
-        _refreshToken = null;
+        if (creds != null) {
+          _user = creds.user;
+          _accessToken = creds.accessToken;
+          _refreshToken = creds.refreshToken;
+        }
+      } catch (e) {
+        debugPrint('Auth0 web onLoad error: $e');
+      }
+    } else {
+      // Mobile: try to renew from stored refresh token
+      _refreshToken = await _storage.read(key: 'refresh_token');
+      if (_refreshToken != null) {
+        try {
+          final credentials = await _auth0!.api.renewCredentials(
+            refreshToken: _refreshToken!,
+          );
+          _user = credentials.user;
+          _accessToken = credentials.accessToken;
+          _refreshToken = credentials.refreshToken ?? _refreshToken;
+          await _storage.write(key: 'refresh_token', value: _refreshToken);
+        } catch (_) {
+          await _storage.delete(key: 'refresh_token');
+          _refreshToken = null;
+        }
       }
     }
     notifyListeners();
@@ -42,7 +66,17 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final credentials = await _auth0.webAuthentication().login(
+      if (kIsWeb) {
+        await _auth0Web!.loginWithRedirect(
+          redirectUrl: Uri.base.origin,
+          scopes: {'openid', 'profile', 'email', 'offline_access'},
+        );
+        // Page will redirect — won't reach here
+        return;
+      }
+
+      // Mobile
+      final credentials = await _auth0!.webAuthentication().login(
         audience: auth0Audience.isNotEmpty ? auth0Audience : null,
         scopes: {'openid', 'profile', 'email', 'offline_access'},
       );
@@ -67,7 +101,11 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _auth0.webAuthentication().logout();
+      if (kIsWeb) {
+        await _auth0Web!.logout(returnToUrl: Uri.base.origin);
+        return;
+      }
+      await _auth0!.webAuthentication().logout();
     } catch (_) {}
 
     _user = null;
