@@ -1,8 +1,17 @@
-import { getAccessTokenFromTokenVault } from "@auth0/ai-genkit";
 import { z } from "zod";
 import { defineProtectedTool } from "../auth0.js";
 
-export const listEmails = defineProtectedTool(
+let _cached: ReturnType<typeof register> | null = null;
+export function getGmailTools() {
+  if (!_cached) _cached = register();
+  return _cached;
+}
+
+function register() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { getAccessTokenFromTokenVault } = require("@auth0/ai-genkit");
+
+  const listEmails = defineProtectedTool(
   {
     name: "list_emails",
     description: "List recent emails from the user's Gmail inbox",
@@ -84,7 +93,7 @@ export const listEmails = defineProtectedTool(
   }
 );
 
-export const readEmail = defineProtectedTool(
+const readEmail = defineProtectedTool(
   {
     name: "read_email",
     description: "Read the full content of a specific email by its ID",
@@ -145,3 +154,6 @@ export const readEmail = defineProtectedTool(
       };
   }
 );
+
+return { listEmails, readEmail };
+}

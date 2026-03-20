@@ -38,7 +38,7 @@ class ChatService extends ChangeNotifier {
 
     try {
       final response = await http.post(
-        Uri.parse('$apiBaseUrl/api/chat'),
+        Uri.parse('$apiBaseUrl/chat'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'message': text,
@@ -80,7 +80,7 @@ class ChatService extends ChangeNotifier {
 
     try {
       final response = await http.post(
-        Uri.parse('$apiBaseUrl/api/conversations/$_conversationId/resume'),
+        Uri.parse('$apiBaseUrl/conversations/$_conversationId/resume'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'refreshToken': refreshToken,

@@ -1,8 +1,17 @@
-import { getAccessTokenFromTokenVault } from "@auth0/ai-genkit";
 import { z } from "zod";
 import { defineProtectedTool } from "../auth0.js";
 
-export const listDriveFiles = defineProtectedTool(
+let _cached: ReturnType<typeof register> | null = null;
+export function getDriveTools() {
+  if (!_cached) _cached = register();
+  return _cached;
+}
+
+function register() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { getAccessTokenFromTokenVault } = require("@auth0/ai-genkit");
+
+  const listDriveFiles = defineProtectedTool(
   {
     name: "list_drive_files",
     description:
@@ -67,7 +76,7 @@ export const listDriveFiles = defineProtectedTool(
   }
 );
 
-export const readDriveFile = defineProtectedTool(
+const readDriveFile = defineProtectedTool(
   {
     name: "read_drive_file",
     description:
@@ -120,3 +129,6 @@ export const readDriveFile = defineProtectedTool(
       };
   }
 );
+
+return { listDriveFiles, readDriveFile };
+}

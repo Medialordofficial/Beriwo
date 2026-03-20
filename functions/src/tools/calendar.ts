@@ -1,8 +1,17 @@
-import { getAccessTokenFromTokenVault } from "@auth0/ai-genkit";
 import { z } from "zod";
 import { defineProtectedTool } from "../auth0.js";
 
-export const listUpcomingEvents = defineProtectedTool(
+let _cached: ReturnType<typeof register> | null = null;
+export function getCalendarTools() {
+  if (!_cached) _cached = register();
+  return _cached;
+}
+
+function register() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { getAccessTokenFromTokenVault } = require("@auth0/ai-genkit");
+
+  const listUpcomingEvents = defineProtectedTool(
   {
     name: "list_upcoming_events",
     description:
@@ -81,7 +90,7 @@ export const listUpcomingEvents = defineProtectedTool(
   }
 );
 
-export const createEvent = defineProtectedTool(
+const createEvent = defineProtectedTool(
   {
     name: "create_calendar_event",
     description: "Create a new event on the user's Google Calendar",
@@ -137,3 +146,6 @@ export const createEvent = defineProtectedTool(
       };
   }
 );
+
+return { listUpcomingEvents, createEvent };
+}

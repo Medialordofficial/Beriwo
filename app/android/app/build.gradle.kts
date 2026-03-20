@@ -28,6 +28,10 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Auth0 redirect scheme
+        manifestPlaceholders["auth0Domain"] = "dev-erixgo5lgfsbtbzc.eu.auth0.com"
+        manifestPlaceholders["auth0Scheme"] = "https"
     }
 
     buildTypes {

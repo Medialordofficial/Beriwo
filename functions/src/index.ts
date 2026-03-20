@@ -1,11 +1,11 @@
-import * as functions from "firebase-functions";
+import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import express from "express";
 import cors from "cors";
-import { ai } from "./auth0.js";
-import { listEmails, readEmail } from "./tools/gmail.js";
-import { listUpcomingEvents, createEvent } from "./tools/calendar.js";
-import { listDriveFiles, readDriveFile } from "./tools/drive.js";
+import { getAI, withRefreshToken } from "./auth0.js";
+import { getGmailTools } from "./tools/gmail.js";
+import { getCalendarTools } from "./tools/calendar.js";
+import { getDriveTools } from "./tools/drive.js";
 import type { MessageData } from "genkit/beta";
 
 admin.initializeApp();
@@ -15,14 +15,12 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-const tools = [
-  listEmails,
-  readEmail,
-  listUpcomingEvents,
-  createEvent,
-  listDriveFiles,
-  readDriveFile,
-];
+function getTools() {
+  const { listEmails, readEmail } = getGmailTools();
+  const { listUpcomingEvents, createEvent } = getCalendarTools();
+  const { listDriveFiles, readDriveFile } = getDriveTools();
+  return [listEmails, readEmail, listUpcomingEvents, createEvent, listDriveFiles, readDriveFile];
+}
 
 const systemPrompt = `You are Beriwo, a personal assistant that helps users manage their Gmail, Google Calendar, and Google Drive.
 
@@ -31,7 +29,7 @@ Be direct and concise. When listing items, use a clean format. When errors occur
 Do not make up data. Only use the tools provided.`;
 
 app.post("/chat", async (req, res) => {
-  const { message, conversationId } = req.body;
+  const { message, conversationId, refreshToken } = req.body;
 
   if (!message) {
     res.status(400).json({ error: "message is required" });
@@ -66,13 +64,21 @@ app.post("/chat", async (req, res) => {
     });
 
   try {
-    const session = ai.createSession();
-    const chat = session.chat({
-      system: systemPrompt,
-      tools,
-    });
+    const ai = getAI();
+    const tools = getTools();
 
-    const response = await chat.send(message);
+    const run = async () => {
+      const session = ai.createSession();
+      const chat = session.chat({
+        system: systemPrompt,
+        tools,
+      });
+      return chat.send(message);
+    };
+
+    const response = refreshToken
+      ? await withRefreshToken(refreshToken, run)
+      : await run();
 
     // Check for interrupts (Token Vault auth needed)
     if (response.interrupts && response.interrupts.length > 0) {
@@ -114,6 +120,7 @@ app.post("/chat", async (req, res) => {
 // so the tools will proceed without interrupting.
 app.post("/conversations/:id/resume", async (req, res) => {
   const { id } = req.params;
+  const { refreshToken } = req.body;
 
   try {
     // Get the last user message
@@ -148,13 +155,21 @@ app.post("/conversations/:id/resume", async (req, res) => {
     });
 
     // Re-run with a fresh session. Token Vault now has the authorized token.
-    const session = ai.createSession();
-    const chat = session.chat({
-      system: systemPrompt,
-      tools,
-    });
+    const ai = getAI();
+    const tools = getTools();
 
-    const response = await chat.send(lastMessage);
+    const run = async () => {
+      const session = ai.createSession();
+      const chat = session.chat({
+        system: systemPrompt,
+        tools,
+      });
+      return chat.send(lastMessage);
+    };
+
+    const response = refreshToken
+      ? await withRefreshToken(refreshToken, run)
+      : await run();
     const reply = response.text;
 
     await db
@@ -175,4 +190,4 @@ app.post("/conversations/:id/resume", async (req, res) => {
   }
 });
 
-export const api = functions.https.onRequest(app);
+export const api = onRequest(app);

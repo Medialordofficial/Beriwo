@@ -1,11 +1,11 @@
 const String auth0Domain = String.fromEnvironment(
   'AUTH0_DOMAIN',
-  defaultValue: 'YOUR_TENANT.auth0.com',
+  defaultValue: 'dev-erixgo5lgfsbtbzc.eu.auth0.com',
 );
 
 const String auth0ClientId = String.fromEnvironment(
   'AUTH0_CLIENT_ID',
-  defaultValue: 'YOUR_CLIENT_ID',
+  defaultValue: 'Kx9nZovcl4kTwHpz7bLO2gKWthgZai5i',
 );
 
 const String auth0Audience = String.fromEnvironment(
@@ -15,5 +15,5 @@ const String auth0Audience = String.fromEnvironment(
 
 const String apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://localhost:5001',
+  defaultValue: 'https://api-pfzsd3nqqa-uc.a.run.app',
 );
