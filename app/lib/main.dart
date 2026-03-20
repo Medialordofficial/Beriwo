@@ -24,21 +24,30 @@ class BeriwoApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Beriwo',
         debugShowCheckedModeBanner: false,
+        themeMode: ThemeMode.dark, // Default to true elite dark mode
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1A73E8),
+            seedColor: const Color(0xFF4318FF),
             brightness: Brightness.light,
           ),
           textTheme: GoogleFonts.interTextTheme(),
           useMaterial3: true,
         ),
         darkTheme: ThemeData(
+          scaffoldBackgroundColor: const Color(0xFF030303),
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1A73E8),
+            seedColor: const Color(0xFF4318FF),
             brightness: Brightness.dark,
+            surface: const Color(0xFF0A0A0A),
+            primary: const Color(0xFF4318FF),
           ),
           textTheme: GoogleFonts.interTextTheme(
             ThemeData(brightness: Brightness.dark).textTheme,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF030303),
+            elevation: 0,
+            scrolledUnderElevation: 0,
           ),
           useMaterial3: true,
         ),
