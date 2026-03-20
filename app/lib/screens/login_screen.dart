@@ -1,7 +1,6 @@
-import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
+import "../services/auth_service.dart";
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -9,176 +8,129 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
-    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       backgroundColor: const Color(0xFF030303),
-      body: Stack(
-        children: [
-          // Background ambient glows for that premium modern aesthetic
-          Positioned(
-            top: -size.height * 0.1,
-            left: -size.width * 0.1,
-            child: Container(
-              width: size.width * 0.7,
-              height: size.width * 0.7,
-              decoration: const BoxDecoration(
-                color: Color(0xFF4318FF), // Deep electric indigo
-                shape: BoxShape.circle,
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 200, sigmaY: 200),
-                child: const SizedBox(),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -size.height * 0.1,
-            right: -size.width * 0.1,
-            child: Container(
-              width: size.width * 0.6,
-              height: size.width * 0.6,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEB2F96), // Auth0-esque vibrant pink/magenta
-                shape: BoxShape.circle,
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 180, sigmaY: 180),
-                child: const SizedBox(),
-              ),
-            ),
-          ),
-
-          // Foreground Glassmorphic Container
-          Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: ClipRRect(
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: Container(
+                width: 460,
+                padding: const EdgeInsets.all(56),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0A0A0A),
                   borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                    child: Container(
-                      width: 460,
-                      padding: const EdgeInsets.all(56),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.03),
-                        borderRadius: BorderRadius.circular(32),
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.1),
-                          width: 1,
+                          width: 0.5,
                         ),
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                width: 0.5,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.bolt_rounded,
-                              size: 36,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 48),
-                          const Text(
-                            'Beriwo.',
-                            style: TextStyle(
-                              fontSize: 56,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -2.0,
-                              height: 1.0,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Unify your digital workspace.\nExperience seamless integration.',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white.withValues(alpha: 0.6),
-                              height: 1.5,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 56),
-
-                          // Primary Auth0 Button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 60,
-                            child: ElevatedButton(
-                              onPressed: auth.loading
-                                  ? null
-                                  : () => auth.login(),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: Colors.black,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: auth.loading
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.black,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Continue with Auth0',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: -0.3,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Trust badge
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.shield_rounded,
-                                size: 16,
-                                color: Colors.white.withValues(alpha: 0.4),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Enterprise-grade security',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white.withValues(alpha: 0.4),
-                                  letterSpacing: -0.1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      child: const Icon(
+                        Icons.bolt_rounded,
+                        size: 36,
+                        color: Colors.white,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 48),
+                    const Text(
+                      "Beriwo.",
+                      style: TextStyle(
+                        fontSize: 56,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -2.0,
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      "Unify your digital workspace.\nExperience seamless integration.",
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white.withValues(alpha: 0.6),
+                        height: 1.5,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 56),
+                    
+                    SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: auth.loading ? null : () => auth.login(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: auth.loading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black,
+                                ),
+                              )
+                            : const Text(
+                                "Continue with Auth0",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.shield_rounded,
+                          size: 16,
+                          color: Colors.white.withValues(alpha: 0.4),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Enterprise-grade security",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.4),
+                            letterSpacing: -0.1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
