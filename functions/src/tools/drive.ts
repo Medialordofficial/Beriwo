@@ -25,9 +25,9 @@ function register() {
         .number()
         .int()
         .min(1)
-        .max(20)
+        .max(50)
         .default(10)
-        .describe("Number of files to retrieve"),
+        .describe("Number of files to retrieve (max 50)"),
     }),
     outputSchema: z.object({
       files: z.array(

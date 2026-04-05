@@ -10,7 +10,7 @@ const String auth0ClientId = String.fromEnvironment(
 
 const String auth0Audience = String.fromEnvironment(
   'AUTH0_AUDIENCE',
-  defaultValue: '',
+  defaultValue: 'https://api.beriwo.com',
 );
 
 const String apiBaseUrl = String.fromEnvironment(

@@ -1,11 +1,11 @@
 {
-    "name": "beriwo",
-    "short_name": "beriwo",
+    "name": "Beriwo — Your Autonomous AI Operator",
+    "short_name": "Beriwo",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F9FAFC",
+    "theme_color": "#1B3A5C",
+    "description": "Beriwo — Your Autonomous AI Operator. Manage emails, calendar, drive and more with intelligent automation.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

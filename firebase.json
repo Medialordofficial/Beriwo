@@ -1,8 +1,11 @@
 {
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs20"
-  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs22"
+    }
+  ],
   "hosting": {
     "public": "app/build/web",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],

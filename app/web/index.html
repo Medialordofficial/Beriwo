@@ -18,24 +18,43 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Beriwo — Your Autonomous AI Operator. Manage emails, calendar, drive and more with intelligent automation.">
+  <meta name="theme-color" content="#1B3A5C">
+  <meta property="og:title" content="Beriwo — Your Autonomous AI Operator">
+  <meta property="og:description" content="Beriwo handles your inbox, calendar and documents with AI-powered autonomous workflows.">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:type" content="website">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="beriwo">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Beriwo">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/Icon-192.png"/>
 
-  <title>beriwo</title>
+  <title>Beriwo — Your Autonomous AI Operator</title>
   <link rel="manifest" href="manifest.json">
 
   <!-- Auth0 SPA SDK (required by auth0_flutter on web) -->
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js" defer></script>
 </head>
-<body>
+<body style="margin:0;background-color:#F9FAFC;overflow:hidden;">
+  <!-- Loading indicator while Flutter engine boots -->
+  <div id="loading" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#F9FAFC;z-index:999;">
+    <img src="logo.png" alt="Beriwo" style="width:180px;height:auto;margin-bottom:24px;">
+    <div style="width:36px;height:36px;border:3px solid #E8EAED;border-top-color:#1B3A5C;border-radius:50%;animation:spin .8s linear infinite;"></div>
+    <p style="margin-top:16px;color:#5F6368;font-family:'Georgia',serif;font-size:14px;letter-spacing:0.5px;">Loading your workspace...</p>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  <script>
+    window.addEventListener('flutter-first-frame', function() {
+      var el = document.getElementById('loading');
+      if (el) el.remove();
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
