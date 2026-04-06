@@ -133,7 +133,11 @@ class LoginScreen extends StatelessWidget {
                   )
                 : Text(
                     'Get started',
-                    style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w600, fontSize: 15),
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
                   ),
           ),
         ],
@@ -171,7 +175,8 @@ class LoginScreen extends StatelessWidget {
               // Large logo
               RichText(
                 text: TextSpan(
-                  style: TextStyle(color: Colors.grey[400], 
+                  style: TextStyle(
+                    color: Colors.grey[400],
                     fontSize: isDesktop ? 56 : 36,
                     fontWeight: FontWeight.w700,
                     fontFamily: 'Georgia',
@@ -198,7 +203,7 @@ class LoginScreen extends StatelessWidget {
               ),
               SizedBox(height: 24),
               Text(
-                'Authorized to Act.\nNever Trusted to Hold the Keys.',
+                'A Network of AI Agents\nThat Acts on Your Behalf.',
                 textAlign: isDesktop ? TextAlign.left : TextAlign.center,
                 style: TextStyle(
                   fontSize: isDesktop ? 72 : 42,
@@ -212,7 +217,7 @@ class LoginScreen extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: Text(
-                  'Meet Beriwo. A fully autonomous AI colleague that safely reads your emails, manages your schedule, and searches your documents. Built with enterprise-grade security and cross-session memory.',
+                  'Beriwo is a network of AI agents that acts on your behalf — secured by Auth0 so it never touches your credentials. It reads your email, manages your calendar, and searches your files.',
                   textAlign: isDesktop ? TextAlign.left : TextAlign.center,
                   style: TextStyle(
                     fontSize: 22,
@@ -244,7 +249,8 @@ class LoginScreen extends StatelessWidget {
                     ),
                     child: Text(
                       'Deploy Your Agent',
-                      style: TextStyle(color: Colors.grey[400], 
+                      style: TextStyle(
+                        color: Colors.grey[400],
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
