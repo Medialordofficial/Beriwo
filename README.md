@@ -248,7 +248,7 @@ FUNCTIONS_DISCOVERY_TIMEOUT=60000 firebase deploy
 ## How the Consent Flow Works
 
 ```
-User: "Send an email to John saying I'll be late"
+User: "Send an email to my wife tina Javynyuy and tell her to pick up my son ethan from the daycare at 15:00, since i wont be able to close earlier than planned.."
   │
   ▼
 Phase 1 — Planner (NO tools, NO tokens)
