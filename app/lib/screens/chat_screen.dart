@@ -1782,100 +1782,6 @@ class _ChatScreenState extends State<ChatScreen> {
         lower.contains('session has expired');
   }
 
-  // ─── FLOATING CONSENT BANNER ───
-  Widget _buildFloatingConsentBanner(ChatService chat, AuthService auth) {
-    final blocked = chat.pendingConsent!;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _orange.withOpacity(0.08),
-        border: const Border(top: BorderSide(color: _orange, width: 1.5)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.shield, size: 16, color: _orange),
-              SizedBox(width: 6),
-              Text(
-                'Actions need your approval',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: _textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ...blocked.map(
-            (bw) => Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Row(
-                children: [
-                  const Icon(Icons.edit, size: 14, color: _textSecondary),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      '${bw.label}${bw.purpose != null ? ' — ${bw.purpose}' : ''}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  textStyle: const TextStyle(fontSize: 12),
-                ),
-                icon: const Icon(Icons.check, size: 16),
-                label: const Text('Approve'),
-                onPressed: () {
-                  final toolNames = blocked.map((bw) => bw.tool).toList();
-                  if (auth.accessToken != null) {
-                    chat.sendStreaming(
-                      'I approve the pending actions',
-                      auth.refreshToken ?? '',
-                      accessToken: auth.accessToken,
-                      approvedWrites: toolNames,
-                    );
-                  }
-                },
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  textStyle: const TextStyle(fontSize: 12),
-                ),
-                icon: const Icon(Icons.close, size: 16),
-                label: const Text('Deny'),
-                onPressed: () {
-                  chat.clearInterrupt('The actions were denied by the user.');
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   // ─── NOT CONNECTED BANNER ───
   Widget _buildNotConnectedBanner(AuthService auth, String dataType) {
     return Center(
@@ -2058,9 +1964,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                   ),
           ),
-          // Floating consent banner — always visible when consent is pending
-          if (chat.pendingConsent != null && chat.pendingConsent!.isNotEmpty)
-            _buildFloatingConsentBanner(chat, auth),
           // Inline chat input
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
