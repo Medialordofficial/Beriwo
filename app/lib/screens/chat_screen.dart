@@ -136,19 +136,90 @@ class _ChatScreenState extends State<ChatScreen> {
             '${_getGreeting()}, ${auth.user?.name?.split(' ').first ?? 'User'},',
             style: const TextStyle(fontSize: 14, color: _textPrimary),
           ),
-          const SizedBox(width: 12),
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: _blue.withOpacity(0.1),
-            backgroundImage: auth.user?.pictureUrl != null
-                ? NetworkImage(auth.user!.pictureUrl.toString())
-                : null,
-            child: auth.user?.pictureUrl == null
-                ? const Icon(Icons.person, size: 20, color: _blue)
-                : null,
-          ),
           const SizedBox(width: 8),
-          const Icon(Icons.keyboard_arrow_down, color: _textSecondary),
+          PopupMenuButton<String>(
+            offset: const Offset(0, 48),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            onSelected: (value) {
+              switch (value) {
+                case 'signout':
+                  auth.logout();
+                  break;
+                case 'profile':
+                  setState(() => _sidebarIndex = 5);
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                enabled: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      auth.user?.name ?? 'User',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      auth.user?.email ?? '',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: _textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'profile',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.settings_outlined,
+                      size: 18,
+                      color: _textSecondary,
+                    ),
+                    SizedBox(width: 12),
+                    Text('Settings'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'signout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 18, color: Colors.redAccent),
+                    SizedBox(width: 12),
+                    Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+                  ],
+                ),
+              ),
+            ],
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: _blue.withOpacity(0.1),
+                  backgroundImage: auth.user?.pictureUrl != null
+                      ? NetworkImage(auth.user!.pictureUrl.toString())
+                      : null,
+                  child: auth.user?.pictureUrl == null
+                      ? const Icon(Icons.person, size: 20, color: _blue)
+                      : null,
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.keyboard_arrow_down, color: _textSecondary),
+              ],
+            ),
+          ),
         ],
       ),
     );
