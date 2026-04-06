@@ -242,16 +242,17 @@ function ensureApp() {
       if (!googleToken) return res.json({ connected: false, emails: [] });
       const headers = { Authorization: `Bearer ${googleToken}` };
       const q = req.query.q || "";
-      const params = new URLSearchParams({ maxResults: "20" });
+      const label = req.query.label || "INBOX"; // INBOX or SENT
+      const params = new URLSearchParams({ maxResults: "30", labelIds: label });
       if (q) params.set("q", q);
       const listRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?${params}`, { headers });
       if (!listRes.ok) return res.json({ connected: true, emails: [] });
       const listData = await listRes.json() as any;
       const msgList = listData.messages || [];
       const emails = await Promise.all(
-        msgList.slice(0, 20).map(async (msg: any) => {
+        msgList.slice(0, 30).map(async (msg: any) => {
           const r = await fetch(
-            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`,
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Date`,
             { headers }
           );
           if (!r.ok) return null;
@@ -259,7 +260,18 @@ function ensureApp() {
           const hdrs = data.payload?.headers || [];
           const get = (name: string) => hdrs.find((h: any) => h.name === name)?.value || "";
           const labels: string[] = data.labelIds || [];
-          return { id: data.id, subject: get("Subject"), from: get("From"), snippet: data.snippet || "", date: get("Date"), unread: labels.includes("UNREAD") };
+          const fromAddr = get("From").toLowerCase();
+          // Heuristic: business emails come from domains that aren't common consumer providers
+          const consumerDomains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com", "icloud.com", "mail.com", "protonmail.com", "live.com", "msn.com"];
+          const domainMatch = fromAddr.match(/@([a-z0-9.-]+)/);
+          const domain = domainMatch ? domainMatch[1] : "";
+          const isBusiness = domain.length > 0 && !consumerDomains.includes(domain);
+          return {
+            id: data.id, subject: get("Subject"), from: get("From"), to: get("To"),
+            snippet: data.snippet || "", date: get("Date"),
+            unread: labels.includes("UNREAD"), isBusiness,
+            labels: labels,
+          };
         })
       );
       res.json({ connected: true, emails: emails.filter(Boolean) });
@@ -278,9 +290,12 @@ function ensureApp() {
         : await getGoogleTokenForUser(req.headers.authorization?.substring(7));
       if (!googleToken) return res.json({ connected: false, events: [] });
       const headers = { Authorization: `Bearer ${googleToken}` };
-      const now = new Date().toISOString();
+      const now = new Date();
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
       const params = new URLSearchParams({
-        maxResults: "20", singleEvents: "true", orderBy: "startTime", timeMin: now,
+        maxResults: "10", singleEvents: "true", orderBy: "startTime",
+        timeMin: now.toISOString(), timeMax: endOfDay.toISOString(),
       });
       const r = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`, { headers });
       if (!r.ok) return res.json({ connected: true, events: [] });
@@ -426,6 +441,7 @@ CRITICAL RULES:
 - You have NO access to any tools or APIs. You can only PLAN.
 - You NEVER see or handle user credentials. You are sandboxed.
 - Your plans will be validated by a Policy Gate before execution.
+- You CAN and MUST plan write operations (send emails, create events, etc.) — the Policy Gate and Consent system will handle approval. NEVER refuse to plan a write operation. NEVER say "I cannot create events" or "I cannot send emails". You absolutely CAN — plan it and the system handles the rest.
 
 Available tools you can reference in your plan:
 - list_emails(maxResults, query) — Read recent emails
@@ -433,11 +449,13 @@ Available tools you can reference in your plan:
 - send_email(to, subject, body, cc?, bcc?) — Compose and send a new email [REQUIRES USER CONSENT]
 - reply_to_email(emailId, body) — Reply to an existing email thread [REQUIRES USER CONSENT]
 - list_upcoming_events(maxResults, timeMin, timeMax) — Check calendar
-- create_calendar_event(summary, startDateTime, endDateTime, description, location) — Create event [REQUIRES USER CONSENT]
+- create_calendar_event(summary, startDateTime, endDateTime, description, location) — Create event [REQUIRES USER CONSENT]. For Google Meet, add "Google Meet link will be added" in the description — Google Calendar auto-generates Meet links for events with attendees.
 - update_calendar_event(eventId, summary?, startDateTime?, endDateTime?, description?, location?) — Reschedule or edit event [REQUIRES USER CONSENT]
 - delete_calendar_event(eventId) — Delete/cancel event [REQUIRES USER CONSENT]
 - list_drive_files(query, maxResults) — Browse Drive files
 - read_drive_file(fileId) — Read file content
+
+IMPORTANT: Only use { "type": "direct" } for greetings, general knowledge questions, or requests that genuinely need NO tools. If the user asks to send, create, schedule, update, delete, or manage ANYTHING — you MUST return a plan with { "type": "plan" }.
 
 For requests that need NO tools (general chat, greetings, questions about yourself):
 Return a JSON object: { "type": "direct", "response": "your response here" }
@@ -467,7 +485,9 @@ PLANNING GUIDELINES:
 9. Be proactive — if asked to "handle" or "deal with" something, plan all necessary steps (read, respond, schedule, etc.).
 10. For email sends/replies, always include the full composed body in the plan args. Don't leave placeholders.
 11. CROSS-SERVICE INTELLIGENCE: When briefing the user on their day, connect the dots across services. For example, if there's a meeting about "Project X" and emails about "Project X", mention the connection. Flag conflicts (double-bookings, emails that need responses before scheduled meetings). Prioritize by urgency and time-sensitivity.
-12. For daily briefings and triaging, organize output into actionable categories: URGENT (needs response before next meeting), TODAY (time-sensitive), and FYI (informational). This makes Beriwo more than a data fetcher — it becomes an executive assistant.`;
+12. For daily briefings and triaging, organize output into actionable categories: URGENT (needs response before next meeting), TODAY (time-sensitive), and FYI (informational). This makes Beriwo more than a data fetcher — it becomes an executive assistant.
+13. For Google Meet / video call requests: create a calendar event with create_calendar_event. Google Calendar automatically generates Meet links for events. Include relevant details in the description.
+14. NEVER refuse to plan an action that uses an available tool. If the user asks to "schedule", "set up", "create", "send", "reply", "update", or "delete" something — ALWAYS create a plan. The consent system will ask the user for approval before execution.`;
   }
 
   // ── PHASE 3: Synthesis (no tools, no tokens) ──

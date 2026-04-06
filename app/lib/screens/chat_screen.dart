@@ -25,6 +25,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   int _sidebarIndex = 0;
+  int _emailTab = 0;
   bool _autoPilot = true;
   bool _dataLoaded = false;
   bool _chatOpen = false;
@@ -172,13 +173,31 @@ class _ChatScreenState extends State<ChatScreen> {
           _SidebarItem(
             icon: Icons.mail_outline_rounded,
             label: 'Inbox',
-            selected: _sidebarIndex == 1,
+            selected: _sidebarIndex == 1 && _emailTab == 0,
             color: Colors.redAccent,
             badge: dash.unreadCount > 0 ? dash.unreadCount : null,
             onTap: () {
-              setState(() => _sidebarIndex = 1);
+              setState(() {
+                _sidebarIndex = 1;
+                _emailTab = 0;
+              });
               final auth = context.read<AuthService>();
               dash.loadEmails(auth.accessToken);
+            },
+          ),
+          _SidebarItem(
+            icon: Icons.send_outlined,
+            label: 'Sent',
+            selected: _sidebarIndex == 1 && _emailTab == 1,
+            color: Colors.teal,
+            badge: dash.sentCount > 0 ? dash.sentCount : null,
+            onTap: () {
+              setState(() {
+                _sidebarIndex = 1;
+                _emailTab = 1;
+              });
+              final auth = context.read<AuthService>();
+              dash.loadEmails(auth.accessToken, label: 'SENT');
             },
           ),
           _SidebarItem(
@@ -264,7 +283,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       setState(() => _autoPilot = v);
                       _toggleAutoPilot(v);
                     },
-                    activeColor: Colors.white,
+                    activeThumbColor: Colors.white,
                     activeTrackColor: _blue.withOpacity(0.5),
                   ),
                 ],
@@ -277,10 +296,31 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _toggleAutoPilot(bool enabled) {
+  void _toggleAutoPilot(bool enabled) async {
     final auth = context.read<AuthService>();
+    final dash = context.read<DashboardService>();
     if (auth.accessToken == null) return;
-    _sendToChat(enabled ? 'Enable auto pilot mode' : 'Switch to manual mode');
+    final success = await dash.toggleAutoPilot(auth.accessToken, enabled);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            enabled ? 'Auto Pilot enabled' : 'Switched to Manual mode',
+          ),
+          backgroundColor: enabled ? _green : _navy,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      // Revert the toggle on failure
+      setState(() => _autoPilot = !enabled);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update Auto Pilot setting'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   Widget _buildMainContent(DashboardService dash, AuthService auth) {
@@ -587,23 +627,28 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: _AgentCard(
-              icon: Icons.check_circle,
+              icon: Icons.mail_outline,
               color: _green,
               title: 'Email Agent',
               subtitle: dash.emails.isNotEmpty
                   ? '${dash.unreadCount} unread'
                   : 'Idle',
+              onTap: () =>
+                  _sendToChat('Check my emails and summarize unread messages.'),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: _AgentCard(
-              icon: Icons.calendar_view_week,
+              icon: Icons.calendar_today,
               color: _blue,
               title: 'Schedule Agent',
               subtitle: dash.events.isNotEmpty
                   ? '${dash.todayEventCount} today'
                   : 'Idle',
+              onTap: () => _sendToChat(
+                'Check my calendar and brief me on upcoming meetings.',
+              ),
             ),
           ),
         ],
@@ -613,15 +658,54 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: _AgentCard(
-              icon: Icons.description,
+              icon: Icons.description_outlined,
               color: Colors.cyan,
               title: 'Docs Agent',
               subtitle: dash.files.isNotEmpty
                   ? '${dash.files.length} files'
                   : 'Idle',
+              onTap: () => _sendToChat('List my recent Google Drive files.'),
             ),
           ),
-          Expanded(child: Container()),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _AgentCard(
+              icon: Icons.edit_outlined,
+              color: _gold,
+              title: 'Compose Agent',
+              subtitle: 'Draft emails',
+              onTap: () => _sendToChat('Help me compose a new email.'),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          Expanded(
+            child: _AgentCard(
+              icon: Icons.reply_outlined,
+              color: Colors.deepPurple,
+              title: 'Reply Agent',
+              subtitle: 'Smart replies',
+              onTap: () => _sendToChat(
+                'Show me emails that need a reply and suggest responses.',
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _AgentCard(
+              icon: Icons.smart_toy_outlined,
+              color: _autoPilot ? _green : Colors.grey,
+              title: 'AutoPilot',
+              subtitle: _autoPilot ? 'Active' : 'Off',
+              onTap: () {
+                setState(() => _autoPilot = !_autoPilot);
+                _toggleAutoPilot(_autoPilot);
+              },
+            ),
+          ),
         ],
       ),
     ], trailing: const Icon(Icons.psychology, color: _blue));
@@ -629,21 +713,40 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // ─── INBOX TAB ───
   Widget _buildInbox(DashboardService dash, AuthService auth) {
+    final String tabTitle;
+    final List<EmailItem> emailList;
+    final bool isSentView;
+    switch (_emailTab) {
+      case 1:
+        tabTitle = 'Sent';
+        emailList = dash.sentEmails;
+        isSentView = true;
+        break;
+      case 2:
+        tabTitle = 'Business';
+        emailList = dash.businessEmails;
+        isSentView = false;
+        break;
+      default:
+        tabTitle = 'Inbox';
+        emailList = dash.emails;
+        isSentView = false;
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Text(
-              'Inbox',
-              style: TextStyle(
+            Text(
+              tabTitle,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
             ),
             const SizedBox(width: 16),
-            if (dash.unreadCount > 0)
+            if (_emailTab == 0 && dash.unreadCount > 0)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -655,6 +758,25 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 child: Text(
                   '${dash.unreadCount} unread',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            if (_emailTab == 1)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.teal,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${dash.sentCount} sent',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -681,38 +803,109 @@ class _ChatScreenState extends State<ChatScreen> {
                     borderSide: const BorderSide(color: _border),
                   ),
                 ),
-                onSubmitted: (q) => dash.loadEmails(auth.accessToken, query: q),
+                onSubmitted: (q) {
+                  if (_emailTab == 1) {
+                    dash.loadEmails(auth.accessToken, query: q, label: 'SENT');
+                  } else {
+                    dash.loadEmails(auth.accessToken, query: q);
+                  }
+                },
               ),
             ),
             const SizedBox(width: 8),
             IconButton(
               icon: const Icon(Icons.refresh, color: _blue),
-              onPressed: () => dash.loadEmails(auth.accessToken),
+              onPressed: () {
+                if (_emailTab == 1) {
+                  dash.loadEmails(auth.accessToken, label: 'SENT');
+                } else {
+                  dash.loadEmails(auth.accessToken);
+                }
+              },
             ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Sub-tabs: Inbox | Sent | Business
+        Row(
+          children: [
+            _emailTabButton('Inbox', 0, Icons.inbox),
+            const SizedBox(width: 8),
+            _emailTabButton('Sent', 1, Icons.send),
+            const SizedBox(width: 8),
+            _emailTabButton('Business', 2, Icons.business),
           ],
         ),
         const SizedBox(height: 16),
         if (dash.loading) const LinearProgressIndicator(),
-        if (!dash.connected && !dash.loading && dash.emails.isEmpty)
+        if (!dash.connected && !dash.loading && emailList.isEmpty)
           _buildNotConnectedBanner(auth, 'emails')
-        else if (dash.emails.isEmpty && !dash.loading)
-          const Center(
+        else if (emailList.isEmpty && !dash.loading)
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(48),
+              padding: const EdgeInsets.all(48),
               child: Text(
-                'No emails found',
-                style: TextStyle(color: _textSecondary, fontSize: 16),
+                'No $tabTitle emails found',
+                style: const TextStyle(color: _textSecondary, fontSize: 16),
               ),
             ),
           )
         else
-          ...dash.emails.map((email) => _buildEmailTile(email)),
+          ...emailList.map(
+            (email) => _buildEmailTile(email, isSent: isSentView),
+          ),
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildEmailTile(EmailItem email) {
+  Widget _emailTabButton(String label, int index, IconData icon) {
+    final selected = _emailTab == index;
+    return InkWell(
+      onTap: () {
+        setState(() => _emailTab = index);
+        final auth = context.read<AuthService>();
+        final dash = context.read<DashboardService>();
+        if (index == 1) {
+          dash.loadEmails(auth.accessToken, label: 'SENT');
+        } else if (index == 0) {
+          dash.loadEmails(auth.accessToken);
+        }
+        // Business tab filters in-memory from inbox, no extra load needed
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? _blue : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? _blue : _border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: selected ? Colors.white : _textSecondary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: selected ? Colors.white : _textSecondary,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmailTile(EmailItem email, {bool isSent = false}) {
+    final displayName = isSent ? email.recipientName : email.senderName;
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
       decoration: BoxDecoration(
@@ -723,28 +916,53 @@ class _ChatScreenState extends State<ChatScreen> {
       child: ListTile(
         leading: CircleAvatar(
           radius: 18,
-          backgroundColor: email.unread ? _blue : Colors.grey.shade300,
+          backgroundColor: isSent
+              ? Colors.teal
+              : (email.unread ? _blue : Colors.grey.shade300),
           child: Text(
-            email.senderName.isNotEmpty
-                ? email.senderName[0].toUpperCase()
-                : '?',
+            displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
             style: TextStyle(
-              color: email.unread ? Colors.white : _textSecondary,
+              color: (isSent || email.unread) ? Colors.white : _textSecondary,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        title: Text(
-          email.subject,
-          style: TextStyle(
-            fontWeight: email.unread ? FontWeight.bold : FontWeight.normal,
-            fontSize: 14,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                email.subject,
+                style: TextStyle(
+                  fontWeight: email.unread
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  fontSize: 14,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (email.isBusiness)
+              Container(
+                margin: const EdgeInsets.only(left: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _navy.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Business',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: _navy,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
         ),
         subtitle: Text(
-          '${email.senderName} — ${email.snippet}',
+          '${isSent ? "To: " : ""}$displayName — ${email.snippet}',
           style: const TextStyle(fontSize: 12, color: _textSecondary),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -994,8 +1212,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildProjectCard(FileItem folder) {
     return InkWell(
       onTap: () {
-        if (folder.webViewLink.isNotEmpty)
+        if (folder.webViewLink.isNotEmpty) {
           html.window.open(folder.webViewLink, '_blank');
+        }
       },
       child: Container(
         width: 200,
@@ -1201,7 +1420,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Switch(
                 value: _autoPilot,
                 onChanged: (v) => setState(() => _autoPilot = v),
-                activeColor: _blue,
+                activeThumbColor: _blue,
               ),
             ],
           ),
@@ -2107,46 +2326,58 @@ class _AgentCard extends StatelessWidget {
   final Color color;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
   const _AgentCard({
     required this.icon,
     required this.color,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: _bg,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _border),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: _bg,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _border),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: _textSecondary, fontSize: 10),
-                ),
-              ],
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: _textSecondary, fontSize: 10),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            if (onTap != null)
+              const Icon(
+                Icons.play_circle_outline,
+                color: _textSecondary,
+                size: 16,
+              ),
+          ],
+        ),
       ),
     );
   }

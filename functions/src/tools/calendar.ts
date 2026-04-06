@@ -103,7 +103,7 @@ function register() {
 const createEvent = defineProtectedTool(
   {
     name: "create_calendar_event",
-    description: "Create a new event on the user's Google Calendar",
+    description: "Create a new event on the user's Google Calendar. Automatically adds a Google Meet video conference link.",
     inputSchema: z.object({
       summary: z.string().describe("Event title"),
       startDateTime: z
@@ -112,47 +112,66 @@ const createEvent = defineProtectedTool(
       endDateTime: z.string().describe("End date/time in ISO 8601 format"),
       description: z.string().optional().describe("Event description"),
       location: z.string().optional().describe("Event location"),
+      attendees: z.array(z.string()).optional().describe("List of attendee email addresses"),
     }),
     outputSchema: z.object({
       id: z.string(),
       summary: z.string(),
       htmlLink: z.string(),
+      meetLink: z.string().optional(),
     }),
   },
-  async ({ summary, startDateTime, endDateTime, description, location }) => {
+  async ({ summary, startDateTime, endDateTime, description, location, attendees }) => {
       const accessToken = getAccessTokenFromTokenVault();
 
+      const eventBody: any = {
+        summary,
+        start: { dateTime: startDateTime },
+        end: { dateTime: endDateTime },
+        description,
+        location,
+        conferenceData: {
+          createRequest: {
+            requestId: `beriwo-${Date.now()}`,
+            conferenceSolutionKey: { type: "hangoutsMeet" },
+          },
+        },
+      };
+      if (attendees?.length) {
+        eventBody.attendees = attendees.map((email: string) => ({ email }));
+      }
+
       const res = await fetch(
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+        "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1",
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            summary,
-            start: { dateTime: startDateTime },
-            end: { dateTime: endDateTime },
-            description,
-            location,
-          }),
+          body: JSON.stringify(eventBody),
         }
       );
 
       if (!res.ok) {
-        throw new Error(`Calendar API error: ${res.status}`);
+        const errBody = await res.text().catch(() => "");
+        throw new Error(`Calendar API error: ${res.status} ${errBody.substring(0, 300)}`);
       }
 
       const event = (await res.json()) as {
         id: string;
         summary: string;
         htmlLink: string;
+        hangoutLink?: string;
+        conferenceData?: { entryPoints?: { uri?: string; entryPointType?: string }[] };
       };
+      const meetLink = event.hangoutLink ||
+        event.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === "video")?.uri || "";
       return {
         id: event.id,
         summary: event.summary,
         htmlLink: event.htmlLink,
+        meetLink,
       };
   }
 );

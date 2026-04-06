@@ -9,6 +9,7 @@ class DashboardService extends ChangeNotifier {
   String? _error;
 
   List<EmailItem> _emails = [];
+  List<EmailItem> _sentEmails = [];
   List<EventItem> _events = [];
   List<FileItem> _files = [];
   List<ActivityItem> _activities = [];
@@ -17,12 +18,55 @@ class DashboardService extends ChangeNotifier {
   bool get connected => _connected;
   String? get error => _error;
   List<EmailItem> get emails => _emails;
+  List<EmailItem> get sentEmails => _sentEmails;
   List<EventItem> get events => _events;
   List<FileItem> get files => _files;
   List<ActivityItem> get activities => _activities;
 
   int get unreadCount => _emails.where((e) => e.unread).length;
-  int get todayEventCount => _events.length;
+  int get sentCount => _sentEmails.length;
+  List<EmailItem> get businessEmails =>
+      _emails.where((e) => e.isBusiness).toList();
+  List<EmailItem> get businessSentEmails =>
+      _sentEmails.where((e) => e.isBusiness).toList();
+  int get todayEventCount {
+    final now = DateTime.now();
+    return _events.where((e) {
+      try {
+        final start = DateTime.parse(e.start);
+        return start.year == now.year &&
+            start.month == now.month &&
+            start.day == now.day;
+      } catch (_) {
+        return false;
+      }
+    }).length;
+  }
+
+  bool _autoPilot = true;
+  bool get autoPilot => _autoPilot;
+
+  Future<bool> toggleAutoPilot(String? accessToken, bool enabled) async {
+    if (accessToken == null) return false;
+    try {
+      final res = await http.post(
+        Uri.parse('$apiBaseUrl/api/settings/autopilot'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'enabled': enabled}),
+      );
+      if (res.statusCode == 200) {
+        _autoPilot = enabled;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint('AutoPilot toggle error: $e');
+    }
+    return false;
+  }
 
   Future<void> loadDashboard(String? accessToken) async {
     if (accessToken == null) return;
@@ -65,15 +109,18 @@ class DashboardService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadEmails(String? accessToken, {String query = ''}) async {
+  Future<void> loadEmails(
+    String? accessToken, {
+    String query = '',
+    String label = 'INBOX',
+  }) async {
     if (accessToken == null) return;
     _loading = true;
     notifyListeners();
 
     try {
-      final uri = Uri.parse(
-        '$apiBaseUrl/api/emails${query.isNotEmpty ? '?q=$query' : ''}',
-      );
+      final qParam = query.isNotEmpty ? '&q=$query' : '';
+      final uri = Uri.parse('$apiBaseUrl/api/emails?label=$label$qParam');
       final res = await http.get(
         uri,
         headers: {'Authorization': 'Bearer $accessToken'},
@@ -81,9 +128,14 @@ class DashboardService extends ChangeNotifier {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         _connected = data['connected'] == true;
-        _emails = (data['emails'] as List? ?? [])
+        final items = (data['emails'] as List? ?? [])
             .map((e) => EmailItem.fromJson(e))
             .toList();
+        if (label == 'SENT') {
+          _sentEmails = items;
+        } else {
+          _emails = items;
+        }
       }
     } catch (e) {
       debugPrint('Emails load error: $e');
@@ -151,27 +203,38 @@ class EmailItem {
   final String id;
   final String subject;
   final String from;
+  final String to;
   final String snippet;
   final String date;
   final bool unread;
+  final bool isBusiness;
 
   EmailItem({
     required this.id,
     required this.subject,
     required this.from,
+    this.to = '',
     required this.snippet,
     required this.date,
     required this.unread,
+    this.isBusiness = false,
   });
 
   factory EmailItem.fromJson(Map<String, dynamic> json) => EmailItem(
     id: json['id'] ?? '',
     subject: json['subject'] ?? '(No Subject)',
     from: json['from'] ?? '',
+    to: json['to'] ?? '',
     snippet: json['snippet'] ?? '',
     date: json['date'] ?? '',
     unread: json['unread'] == true,
+    isBusiness: json['isBusiness'] == true,
   );
+
+  String get recipientName {
+    final match = RegExp(r'^([^<]+)').firstMatch(to);
+    return match?.group(1)?.trim() ?? to;
+  }
 
   String get senderName {
     final match = RegExp(r'^([^<]+)').firstMatch(from);
@@ -285,12 +348,15 @@ class FileItem {
   );
 
   String get typeLabel {
-    if (mimeType.contains('document') || mimeType.contains('word'))
+    if (mimeType.contains('document') || mimeType.contains('word')) {
       return 'Document';
-    if (mimeType.contains('spreadsheet') || mimeType.contains('excel'))
+    }
+    if (mimeType.contains('spreadsheet') || mimeType.contains('excel')) {
       return 'Spreadsheet';
-    if (mimeType.contains('presentation') || mimeType.contains('powerpoint'))
+    }
+    if (mimeType.contains('presentation') || mimeType.contains('powerpoint')) {
       return 'Presentation';
+    }
     if (mimeType.contains('pdf')) return 'PDF';
     if (mimeType.contains('image')) return 'Image';
     if (mimeType.contains('folder')) return 'Folder';

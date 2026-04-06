@@ -104,7 +104,7 @@ class ChatService extends ChangeNotifier {
           'conversationId': _conversationId,
           'refreshToken': refreshToken.isNotEmpty ? refreshToken : null,
           'accessToken': accessToken,
-          if (approvedWrites != null) 'approvedWrites': approvedWrites,
+          'approvedWrites': ?approvedWrites,
         }),
       );
 
@@ -311,7 +311,7 @@ class ChatService extends ChangeNotifier {
           'conversationId': _conversationId,
           'refreshToken': refreshToken.isNotEmpty ? refreshToken : null,
           'accessToken': accessToken,
-          if (approvedWrites != null) 'approvedWrites': approvedWrites,
+          'approvedWrites': ?approvedWrites,
         }),
       );
 
