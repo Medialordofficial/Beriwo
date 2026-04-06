@@ -59,7 +59,7 @@ class LoginScreen extends StatelessWidget {
             ),
             child: Center(
               child: RichText(
-                text: const TextSpan(
+                text: TextSpan(
                   children: [
                     TextSpan(
                       text: 'B',
@@ -84,9 +84,9 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           RichText(
-            text: const TextSpan(
+            text: TextSpan(
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
@@ -96,7 +96,7 @@ class LoginScreen extends StatelessWidget {
               children: [
                 TextSpan(
                   text: 'Ber',
-                  style: TextStyle(color: _navy),
+                  style: TextStyle(color: Colors.white),
                 ),
                 TextSpan(
                   text: '!',
@@ -104,7 +104,7 @@ class LoginScreen extends StatelessWidget {
                 ),
                 TextSpan(
                   text: 'wo',
-                  style: TextStyle(color: _navy),
+                  style: TextStyle(color: Colors.white),
                 ),
               ],
             ),
@@ -113,16 +113,17 @@ class LoginScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: auth.loading ? null : () => auth.login(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _navy,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+              backgroundColor: _gold,
+              foregroundColor: _darkBg,
+              elevation: 12,
+              shadowColor: _gold.withValues(alpha: 0.4),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(100),
               ),
             ),
             child: auth.loading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
@@ -130,9 +131,9 @@ class LoginScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                   )
-                : const Text(
+                : Text(
                     'Get started',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.w600, fontSize: 15),
                   ),
           ),
         ],
@@ -170,13 +171,13 @@ class LoginScreen extends StatelessWidget {
               // Large logo
               RichText(
                 text: TextSpan(
-                  style: TextStyle(
+                  style: TextStyle(color: Colors.grey[400], 
                     fontSize: isDesktop ? 56 : 36,
                     fontWeight: FontWeight.w700,
                     fontFamily: 'Georgia',
                     letterSpacing: 1,
                   ),
-                  children: const [
+                  children: [
                     TextSpan(
                       text: 'Ber',
                       style: TextStyle(color: Colors.white),
@@ -195,9 +196,9 @@ class LoginScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Text(
-                'The Autonomous AI Agent\nfor your Workspace.',
+                'Authorized to Act.\nNever Trusted to Hold the Keys.',
                 textAlign: isDesktop ? TextAlign.left : TextAlign.center,
                 style: TextStyle(
                   fontSize: isDesktop ? 72 : 42,
@@ -207,13 +208,13 @@ class LoginScreen extends StatelessWidget {
                   letterSpacing: -2.0,
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: Text(
                   'Meet Beriwo. A fully autonomous AI colleague that safely reads your emails, manages your schedule, and searches your documents. Built with enterprise-grade security and cross-session memory.',
                   textAlign: isDesktop ? TextAlign.left : TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 22,
                     color: Color(0xFF9CA3AF),
                     height: 1.5,
@@ -221,7 +222,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 56),
+              SizedBox(height: 56),
               Row(
                 mainAxisAlignment: isDesktop
                     ? MainAxisAlignment.start
@@ -241,9 +242,9 @@ class LoginScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Deploy Your Agent',
-                      style: TextStyle(
+                      style: TextStyle(color: Colors.grey[400], 
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -251,7 +252,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 64),
+              SizedBox(height: 64),
               Wrap(
                 spacing: 32,
                 runSpacing: 16,
@@ -276,12 +277,12 @@ class LoginScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFF1F2937),
-        border: Border.all(color: _navy.withOpacity(0.5)),
+        border: Border.all(color: _navy.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           color: Color(0xFFE5E7EB),
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -336,7 +337,7 @@ class LoginScreen extends StatelessWidget {
                   letterSpacing: -1.5,
                 ),
               ),
-              const SizedBox(height: 72),
+              SizedBox(height: 72),
               Wrap(
                 spacing: 64,
                 runSpacing: 64,
@@ -351,25 +352,25 @@ class LoginScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: _navy.withOpacity(0.1),
+                                color: _navy.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Icon(f.$3, color: _navy, size: 28),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: 24),
                             Text(
                               f.$1,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFF111827),
                                 fontSize: 22,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: -0.5,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12),
                             Text(
                               f.$2,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFF6B7280),
                                 fontSize: 16,
                                 height: 1.6,
@@ -402,7 +403,7 @@ class LoginScreen extends StatelessWidget {
                 : WrapAlignment.center,
             crossAxisAlignment: WrapCrossAlignment.center,
             runSpacing: 16,
-            children: const [
+            children: [
               SizedBox(
                 width: double.infinity,
                 child: Wrap(
