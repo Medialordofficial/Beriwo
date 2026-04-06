@@ -449,7 +449,7 @@ Available tools you can reference in your plan:
 - send_email(to, subject, body, cc?, bcc?) — Compose and send a new email [REQUIRES USER CONSENT]
 - reply_to_email(emailId, body) — Reply to an existing email thread [REQUIRES USER CONSENT]
 - list_upcoming_events(maxResults, timeMin, timeMax) — Check calendar
-- create_calendar_event(summary, startDateTime, endDateTime, description, location) — Create event [REQUIRES USER CONSENT]. For Google Meet, add "Google Meet link will be added" in the description — Google Calendar auto-generates Meet links for events with attendees.
+- create_calendar_event(summary, startDateTime, endDateTime, description, location, attendees?) — Create event [REQUIRES USER CONSENT]. For Google Meet, add "Google Meet link will be added" in the description — Google Calendar auto-generates Meet links for events with attendees.
 - update_calendar_event(eventId, summary?, startDateTime?, endDateTime?, description?, location?) — Reschedule or edit event [REQUIRES USER CONSENT]
 - delete_calendar_event(eventId) — Delete/cancel event [REQUIRES USER CONSENT]
 - list_drive_files(query, maxResults) — Browse Drive files

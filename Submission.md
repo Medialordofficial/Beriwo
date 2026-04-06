@@ -20,7 +20,7 @@
 
 *Screen: Beriwo logo reveal, then the live app at beriwo-inc.web.app*
 
-> "This is Beriwo — an autonomous AI executive assistant secured by Auth0 Token Vault. It has 10 tools across Gmail, Calendar, and Google Drive. And the AI never touches your credentials."
+> "This is Beriwo — an autonomous AI executive agent secured by Auth0 Token Vault. It has 10 tools across Gmail, Calendar, and Google Drive. And the AI never touches your credentials."
 
 ---
 
@@ -96,21 +96,21 @@
 
 ## SHOT LIST
 
-| # | Shot | How |
-|---|------|-----|
-| 1 | Problem text on black screen | Keynote/Canva slide |
-| 2 | Beriwo logo reveal | Slide or screen recording of app loading |
-| 3 | Auth0 login flow | Screen record clicking Sign In → Auth0 popup |
-| 4 | Auth0 Actions dashboard | Screen record showing the deployed "Beriwo AI RBAC" action code |
-| 5 | Read query demo | Screen record typing query, show streaming phases |
-| 6 | Response with real data | Let the response fully render |
-| 7 | Write query demo | Screen record typing "send email..." |
-| 8 | Consent card appearing | Capture the moment the card pops up |
-| 9 | Clicking Approve → success | Full flow through to "email sent" |
-| 10 | Architecture diagram | Slide with the ASCII diagram or a cleaned-up version |
-| 11 | 5-layer security table | Slide |
-| 12 | Insight text | Slide |
-| 13 | Closing logo + links | Slide |
+| #  | Shot                         | How                                                             |
+| -- | ---------------------------- | --------------------------------------------------------------- |
+| 1  | Problem text on black screen | Keynote/Canva slide                                             |
+| 2  | Beriwo logo reveal           | Slide or screen recording of app loading                        |
+| 3  | Auth0 login flow             | Screen record clicking Sign In → Auth0 popup                   |
+| 4  | Auth0 Actions dashboard      | Screen record showing the deployed "Beriwo AI RBAC" action code |
+| 5  | Read query demo              | Screen record typing query, show streaming phases               |
+| 6  | Response with real data      | Let the response fully render                                   |
+| 7  | Write query demo             | Screen record typing "send email..."                            |
+| 8  | Consent card appearing       | Capture the moment the card pops up                             |
+| 9  | Clicking Approve → success  | Full flow through to "email sent"                               |
+| 10 | Architecture diagram         | Slide with the ASCII diagram or a cleaned-up version            |
+| 11 | 5-layer security table       | Slide                                                           |
+| 12 | Insight text                 | Slide                                                           |
+| 13 | Closing logo + links         | Slide                                                           |
 
 ---
 

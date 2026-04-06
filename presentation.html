@@ -759,7 +759,7 @@
 
 <!-- NAV -->
 <nav class="nav">
-  <a href="#hero" class="nav-logo">
+  <a href="https://beriwo-inc.web.app/" class="nav-logo">
     <img src="app/web/logo.png" alt="Beriwo">
     Ber!wo
   </a>
@@ -785,12 +785,12 @@
 <div class="slide-counter" id="counter">1 / 9</div>
 
 <!-- SLIDE 1: HERO -->
- hero" id="hero">
+<section class="slide hero" id="hero">
   <div class="hero-content">
     <img src="app/web/logo.png" alt="Beriwo Logo" class="hero-logo">
     <h1 class="hero-title">Authorized to Act.<br><span>Never Trusted to Hold the Keys.</span></h1>
     <p class="hero-sub">Your Autonomous AI Operator that reads your Gmail, manages your Calendar, and searches your Drive — secured by Auth0 Token Vault.</p>
-    <p style="font-size:14px;color:var(--gray-400);margin-bottom:28px;font-weight:500;letter-spacing:0.3px;">Presented by <span style="color:var(--gold);">Emmanuel Veranyuy Mfon</span> · Senior Software Engineer</p>
+    <p style="font-size:16px;color:var(--gray-400);margin-bottom:32px;font-weight:600;letter-spacing:0.5px;">Presented by <span style="color:var(--gold);font-weight:700;">Emmanuel Veranyuy Mfon</span> — Senior Software Engineer</p>
     <div class="hero-links">
       <a href="https://beriwo-inc.web.app" class="btn btn-gold" target="_blank"><i class="ph-fill ph-play-circle"></i>&ensp;Live Demo</a>
       <a href="https://github.com/Medialordofficial/Beriwo" class="btn btn-outline" target="_blank"><i class="ph-fill ph-github-logo"></i>&ensp;GitHub</a>
@@ -1168,7 +1168,7 @@
   });
 
   // Handle navigation clicks
-  document.querySelectorAll('.nav-links a, .nav-logo').forEach(link => {
+  document.querySelectorAll('.nav-links a').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const targetId = link.getAttribute('href').substring(1);
