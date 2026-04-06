@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'dart:html' as html;
 import '../services/auth_service.dart';
 import '../services/chat_service.dart';
@@ -269,6 +271,34 @@ class _ChatScreenState extends State<ChatScreen> {
               });
               final auth = context.read<AuthService>();
               dash.loadEmails(auth.accessToken, label: 'SENT');
+            },
+          ),
+          _SidebarItem(
+            icon: Icons.report_outlined,
+            label: 'Spam',
+            selected: _sidebarIndex == 1 && _emailTab == 3,
+            color: Colors.orange,
+            onTap: () {
+              setState(() {
+                _sidebarIndex = 1;
+                _emailTab = 3;
+              });
+              final auth = context.read<AuthService>();
+              dash.loadEmails(auth.accessToken, label: 'SPAM');
+            },
+          ),
+          _SidebarItem(
+            icon: Icons.delete_outline,
+            label: 'Trash',
+            selected: _sidebarIndex == 1 && _emailTab == 4,
+            color: Colors.grey,
+            onTap: () {
+              setState(() {
+                _sidebarIndex = 1;
+                _emailTab = 4;
+              });
+              final auth = context.read<AuthService>();
+              dash.loadEmails(auth.accessToken, label: 'TRASH');
             },
           ),
           _SidebarItem(
@@ -779,6 +809,34 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          Expanded(
+            child: _AgentCard(
+              icon: Icons.cleaning_services_outlined,
+              color: Colors.red.shade400,
+              title: 'Cleanup Agent',
+              subtitle: 'Spam & trash',
+              onTap: () => _sendToChat(
+                'Empty my spam and trash folders. Also delete any promotional emails older than 30 days.',
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _AgentCard(
+              icon: Icons.category_outlined,
+              color: Colors.teal,
+              title: 'Categorize Agent',
+              subtitle: 'Sort inbox',
+              onTap: () => _sendToChat(
+                'Categorize my inbox emails into sections: Social Media, Business, Bills, Work, Promotion, and Potential Spam. List each category with the email subjects.',
+              ),
+            ),
+          ),
+        ],
+      ),
     ], trailing: const Icon(Icons.psychology, color: _blue));
   }
 
@@ -796,6 +854,16 @@ class _ChatScreenState extends State<ChatScreen> {
       case 2:
         tabTitle = 'Business';
         emailList = dash.businessEmails;
+        isSentView = false;
+        break;
+      case 3:
+        tabTitle = 'Spam';
+        emailList = dash.spamEmails;
+        isSentView = false;
+        break;
+      case 4:
+        tabTitle = 'Trash';
+        emailList = dash.trashEmails;
         isSentView = false;
         break;
       default:
@@ -897,7 +965,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        // Sub-tabs: Inbox | Sent | Business
+        // Sub-tabs: Inbox | Sent | Business | Spam | Trash
         Row(
           children: [
             _emailTabButton('Inbox', 0, Icons.inbox),
@@ -905,6 +973,10 @@ class _ChatScreenState extends State<ChatScreen> {
             _emailTabButton('Sent', 1, Icons.send),
             const SizedBox(width: 8),
             _emailTabButton('Business', 2, Icons.business),
+            const SizedBox(width: 8),
+            _emailTabButton('Spam', 3, Icons.report_outlined),
+            const SizedBox(width: 8),
+            _emailTabButton('Trash', 4, Icons.delete_outline),
           ],
         ),
         const SizedBox(height: 16),
@@ -939,6 +1011,10 @@ class _ChatScreenState extends State<ChatScreen> {
         final dash = context.read<DashboardService>();
         if (index == 1) {
           dash.loadEmails(auth.accessToken, label: 'SENT');
+        } else if (index == 3) {
+          dash.loadEmails(auth.accessToken, label: 'SPAM');
+        } else if (index == 4) {
+          dash.loadEmails(auth.accessToken, label: 'TRASH');
         } else if (index == 0) {
           dash.loadEmails(auth.accessToken);
         }
@@ -1038,9 +1114,35 @@ class _ChatScreenState extends State<ChatScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: Text(
-          email.shortDate,
-          style: const TextStyle(fontSize: 11, color: _textSecondary),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              email.shortDate,
+              style: const TextStyle(fontSize: 11, color: _textSecondary),
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(Icons.report_outlined, size: 18),
+              color: Colors.orange,
+              tooltip: 'Mark as spam',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              onPressed: () => _sendToChat(
+                'Mark email "${email.subject}" from ${email.senderName} as spam',
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline, size: 18),
+              color: Colors.red.shade400,
+              tooltip: 'Move to trash',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              onPressed: () => _sendToChat(
+                'Delete email "${email.subject}" from ${email.senderName}',
+              ),
+            ),
+          ],
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         onTap: () => _sendToChat(
@@ -1205,6 +1307,17 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ],
               ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.cancel_outlined,
+              size: 20,
+              color: Colors.redAccent,
+            ),
+            tooltip: 'Cancel this meeting',
+            onPressed: () => _sendToChat(
+              'Cancel my meeting: "${event.summary}" (event ID: ${event.id})',
             ),
           ),
           IconButton(
@@ -1660,6 +1773,109 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  bool _isErrorMessage(String text) {
+    final lower = text.toLowerCase();
+    return lower.contains('something went wrong') ||
+        lower.contains('connection error') ||
+        lower.contains('temporarily unavailable') ||
+        lower.contains('please try again') ||
+        lower.contains('session has expired');
+  }
+
+  // ─── FLOATING CONSENT BANNER ───
+  Widget _buildFloatingConsentBanner(ChatService chat, AuthService auth) {
+    final blocked = chat.pendingConsent!;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _orange.withOpacity(0.08),
+        border: const Border(top: BorderSide(color: _orange, width: 1.5)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.shield, size: 16, color: _orange),
+              SizedBox(width: 6),
+              Text(
+                'Actions need your approval',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: _textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ...blocked.map(
+            (bw) => Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Row(
+                children: [
+                  const Icon(Icons.edit, size: 14, color: _textSecondary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${bw.label}${bw.purpose != null ? ' — ${bw.purpose}' : ''}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  textStyle: const TextStyle(fontSize: 12),
+                ),
+                icon: const Icon(Icons.check, size: 16),
+                label: const Text('Approve'),
+                onPressed: () {
+                  final toolNames = blocked.map((bw) => bw.tool).toList();
+                  if (auth.accessToken != null) {
+                    chat.sendStreaming(
+                      'I approve the pending actions',
+                      auth.refreshToken ?? '',
+                      accessToken: auth.accessToken,
+                      approvedWrites: toolNames,
+                    );
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  textStyle: const TextStyle(fontSize: 12),
+                ),
+                icon: const Icon(Icons.close, size: 16),
+                label: const Text('Deny'),
+                onPressed: () {
+                  chat.clearInterrupt('The actions were denied by the user.');
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── NOT CONNECTED BANNER ───
   Widget _buildNotConnectedBanner(AuthService auth, String dataType) {
     return Center(
@@ -1842,6 +2058,63 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                   ),
           ),
+          // Floating consent banner — always visible when consent is pending
+          if (chat.pendingConsent != null && chat.pendingConsent!.isNotEmpty)
+            _buildFloatingConsentBanner(chat, auth),
+          // Inline chat input
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: _surface,
+              border: const Border(top: BorderSide(color: _border)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _chatController,
+                    decoration: InputDecoration(
+                      hintText: 'Ask Beriwo...',
+                      hintStyle: const TextStyle(
+                        color: _textSecondary,
+                        fontSize: 13,
+                      ),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(color: _border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(color: _border),
+                      ),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onSubmitted: (text) {
+                      if (text.trim().isNotEmpty) {
+                        _sendToChat(text.trim());
+                        _chatController.clear();
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 6),
+                IconButton(
+                  icon: const Icon(Icons.send, color: _blue, size: 20),
+                  onPressed: () {
+                    if (_chatController.text.trim().isNotEmpty) {
+                      _sendToChat(_chatController.text.trim());
+                      _chatController.clear();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -1987,24 +2260,103 @@ class _ChatScreenState extends State<ChatScreen> {
                   _buildExecutionSteps(msg.executionSteps),
                 // Message text
                 if (msg.text.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _bg,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _border),
-                    ),
-                    child: SelectableText(
-                      msg.text,
-                      style: const TextStyle(
-                        color: _textPrimary,
-                        fontSize: 14,
-                        height: 1.5,
+                  Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _bg,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: _border),
+                        ),
+                        child: MarkdownBody(
+                          data: msg.text,
+                          selectable: true,
+                          styleSheet: MarkdownStyleSheet(
+                            p: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 14,
+                              height: 1.6,
+                            ),
+                            h1: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              height: 1.4,
+                            ),
+                            h2: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              height: 1.4,
+                            ),
+                            h3: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              height: 1.4,
+                            ),
+                            strong: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                            ),
+                            em: const TextStyle(
+                              fontStyle: FontStyle.italic,
+                              color: _textSecondary,
+                            ),
+                            listBullet: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 14,
+                            ),
+                            code: const TextStyle(
+                              backgroundColor: Color(0xFFF3F4F6),
+                              color: Color(0xFF6B21A8),
+                              fontSize: 13,
+                              fontFamily: 'monospace',
+                            ),
+                            codeblockDecoration: BoxDecoration(
+                              color: const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: _border),
+                            ),
+                            blockSpacing: 8,
+                          ),
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: InkWell(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: msg.text));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Copied to clipboard'),
+                                duration: Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(4),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: _surface.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: _border),
+                            ),
+                            child: const Icon(
+                              Icons.copy,
+                              size: 14,
+                              color: _textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 // Tools used
                 if (msg.toolsUsed.isNotEmpty)
@@ -2031,6 +2383,36 @@ class _ChatScreenState extends State<ChatScreen> {
                 // Blocked writes needing consent
                 if (msg.blockedWrites.isNotEmpty)
                   _buildConsentCard(msg, chat, auth),
+                // Retry button for error messages
+                if (!msg.isUser && _isErrorMessage(msg.text))
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: const Text('Retry'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _blue,
+                        side: const BorderSide(color: _blue),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      onPressed: () {
+                        final lastUserMsg = chat.messages.lastWhere(
+                          (m) => m.isUser,
+                          orElse: () =>
+                              ChatMessage(id: '', text: '', isUser: true),
+                        );
+                        if (lastUserMsg.text.isNotEmpty) {
+                          _sendToChat(lastUserMsg.text);
+                        }
+                      },
+                    ),
+                  ),
               ],
             ),
           ),

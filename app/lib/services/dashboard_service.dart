@@ -10,6 +10,8 @@ class DashboardService extends ChangeNotifier {
 
   List<EmailItem> _emails = [];
   List<EmailItem> _sentEmails = [];
+  List<EmailItem> _spamEmails = [];
+  List<EmailItem> _trashEmails = [];
   List<EventItem> _events = [];
   List<FileItem> _files = [];
   List<ActivityItem> _activities = [];
@@ -19,6 +21,8 @@ class DashboardService extends ChangeNotifier {
   String? get error => _error;
   List<EmailItem> get emails => _emails;
   List<EmailItem> get sentEmails => _sentEmails;
+  List<EmailItem> get spamEmails => _spamEmails;
+  List<EmailItem> get trashEmails => _trashEmails;
   List<EventItem> get events => _events;
   List<FileItem> get files => _files;
   List<ActivityItem> get activities => _activities;
@@ -133,6 +137,10 @@ class DashboardService extends ChangeNotifier {
             .toList();
         if (label == 'SENT') {
           _sentEmails = items;
+        } else if (label == 'SPAM') {
+          _spamEmails = items;
+        } else if (label == 'TRASH') {
+          _trashEmails = items;
         } else {
           _emails = items;
         }

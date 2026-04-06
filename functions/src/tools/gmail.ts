@@ -288,5 +288,74 @@ const replyToEmail = defineProtectedTool(
   }
 );
 
-return { listEmails, readEmail, sendEmail, replyToEmail };
+const trashEmail = defineProtectedTool(
+  {
+    name: "trash_email",
+    description: "Move an email to the Trash folder",
+    inputSchema: z.object({
+      emailId: z.string().describe("The Gmail message ID to trash"),
+    }),
+    outputSchema: z.object({
+      status: z.string(),
+    }),
+  },
+  async ({ emailId }) => {
+    const accessToken = getAccessTokenFromTokenVault();
+
+    const res = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${emailId}/trash`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      throw new Error(`Gmail trash error: ${res.status} ${errBody.substring(0, 200)}`);
+    }
+
+    return { status: "trashed" };
+  }
+);
+
+const markAsSpam = defineProtectedTool(
+  {
+    name: "mark_as_spam",
+    description: "Mark an email as spam by adding the SPAM label and removing INBOX",
+    inputSchema: z.object({
+      emailId: z.string().describe("The Gmail message ID to mark as spam"),
+    }),
+    outputSchema: z.object({
+      status: z.string(),
+    }),
+  },
+  async ({ emailId }) => {
+    const accessToken = getAccessTokenFromTokenVault();
+
+    const res = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages/${emailId}/modify`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          addLabelIds: ["SPAM"],
+          removeLabelIds: ["INBOX"],
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      throw new Error(`Gmail spam error: ${res.status} ${errBody.substring(0, 200)}`);
+    }
+
+    return { status: "marked_as_spam" };
+  }
+);
+
+return { listEmails, readEmail, sendEmail, replyToEmail, trashEmail, markAsSpam };
 }

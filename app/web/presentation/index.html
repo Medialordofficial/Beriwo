@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beriwo — Authorized to Act</title>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --navy: #1B3A5C;
+    --navy-dark: #0F2440;
+    --gold: #C5A55A;
+    --gold-light: #D4BB7A;
+    --blue: #1976D2;
+    --blue-light: #42A5F5;
+    --white: #FFFFFF;
+    --gray-50: #F8FAFC;
+    --gray-100: #F1F5F9;
+    --gray-200: #E2E8F0;
+    --gray-400: #94A3B8;
+    --gray-600: #475569;
+    --gray-800: #1E293B;
+    --green: #10B981;
+    --red: #EF4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #1A3352 0%, var(--navy-dark) 100%);
+    color: var(--white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- SLIDES --- */
+    .slide {
+    position: absolute;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(5vw) scale(0.95);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+    z-index: 1;
+  }
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0) scale(1);
+    z-index: 10;
+  }
+  .slide.past {
+    transform: translateX(-5vw) scale(0.95); opacity: 0; filter: blur(4px);
+  }
+
+
+  body.grid-bg::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    background-position: center;
+    animation: panGrid 60s linear infinite;
+    opacity: 0.5;
+    mask-image: radial-gradient(circle at center, black, transparent 80%);
+    -webkit-mask-image: radial-gradient(circle at center, black, transparent 80%);
+  }
+    /* --- NAV --- */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px;
+    background: rgba(15, 36, 64, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(197, 165, 90, 0.15);
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--gold);
+    text-decoration: none;
+  }
+  .nav-logo img {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+  .nav-links {
+    display: flex;
+    gap: 8px;
+  }
+  .nav-links a {
+    color: var(--gray-400);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover {
+    color: var(--white);
+    background: rgba(255,255,255,0.08);
+  }
+  .nav-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--navy-dark);
+    background: var(--gold);
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* --- SLIDE 1: HERO --- */
+  .hero { background: linear-gradient(160deg, var(--navy-dark) 0%, #162D4A 50%, var(--navy) 100%); }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(197,165,90,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-content { text-align: center; max-width: 900px; }
+  .hero-logo {
+    animation: float 6s ease-in-out infinite;
+    width: 120px;
+    height: 120px;
+    border-radius: 28px;
+    margin-bottom: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(197,165,90,0.2);
+  }
+  .hero-title {
+    font-size: 72px; letter-spacing: -2.5px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    margin-bottom: 20px;
+  }
+  
+  .hero-sub {
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--gray-400);
+    line-height: 1.5;
+    max-width: 700px;
+    margin: 0 auto 36px;
+  }
+  .hero-links {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s;
+  }
+  .btn-gold {
+    background: var(--gold);
+    color: var(--navy-dark);
+  }
+  .btn-gold:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(197,165,90,0.3); }
+  .btn-outline {
+    border: 1.5px solid rgba(255,255,255,0.2);
+    color: var(--white);
+    background: transparent;
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+  .timestamp {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(197,165,90,0.12);
+    border: 1px solid rgba(197,165,90,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  h2 span, h1 span {
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 20px rgba(197, 165, 90, 0.15);
+  }
+
+  /* --- SLIDE 2: PROBLEM --- */
+  .problem { background: linear-gradient(160deg, #0D1B2A 0%, var(--navy-dark) 100%); }
+  .problem-quote {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+    max-width: 850px;
+    letter-spacing: -1px;
+  }
+  .problem-quote em {
+    font-style: normal;
+    color: var(--red);
+    text-decoration: underline;
+    text-decoration-color: rgba(239,68,68,0.3);
+    text-underline-offset: 6px;
+  }
+  .problem-followup {
+    font-size: 26px;
+    color: var(--gray-400);
+    text-align: center;
+    margin-top: 28px;
+    max-width: 600px;
+  }
+
+  /* --- SLIDE 3: SOLUTION --- */
+  .solution { background: linear-gradient(160deg, var(--navy-dark) 0%, #1A3352 100%); }
+  .solution-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    max-width: 1100px;
+    align-items: center;
+  }
+  .solution-text h2 {
+    font-size: 48px; letter-spacing: -1.5px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+    line-height: 1.15;
+  }
+  .solution-text 
+  .solution-text p {
+    font-size: 17px;
+    color: var(--gray-400);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .pipeline-box {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 40px 32px;
+  }
+  .pipeline-phases {
+    display: flex;
+    gap: 16px;
+    flex-direction: column;
+  }
+  .phase {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: all 0.3s;
+  }
+  .phase:hover {
+    background: rgba(197,165,90,0.06);
+    border-color: rgba(197,165,90,0.15);
+  }
+  .phase-num {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .phase-1 .phase-num { background: rgba(25,118,210,0.15); color: var(--blue-light); }
+  .phase-2 .phase-num { background: rgba(197,165,90,0.15); color: var(--gold); }
+  .phase-3 .phase-num { background: rgba(16,185,129,0.15); color: var(--green); }
+  .phase-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .phase-info p { font-size: 13px; color: var(--gray-400); line-height: 1.5; margin: 0; }
+  .phase-tags {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .phase-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(239,68,68,0.1);
+    color: #F87171;
+    border: 1px solid rgba(239,68,68,0.15);
+  }
+  .phase-tag.ok {
+    background: rgba(16,185,129,0.1);
+    color: #34D399;
+    border-color: rgba(16,185,129,0.15);
+  }
+
+  /* --- SLIDE 4: AUTH0 FEATURES --- */
+  .features { background: linear-gradient(160deg, #0D1B2A 0%, var(--navy) 100%); }
+  .features-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  .features-header h2 {
+    font-size: 48px; letter-spacing: -1.5px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  .features-header 
+  .features-header p {
+    font-size: 17px;
+    color: var(--gray-400);
+    margin-top: 12px;
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    max-width: 1100px;
+    width: 100%;
+  }
+  .feature-card {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 28px 24px;
+    transition: all 0.3s;
+  }
+  .feature-card:hover {
+    background: rgba(197,165,90,0.05);
+    border-color: rgba(197,165,90,0.2);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin-bottom: 16px;
+  }
+  .feature-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .feature-card p {
+    font-size: 13px;
+    color: var(--gray-400);
+    line-height: 1.6;
+  }
+
+  /* --- SLIDE 5: SECURITY LAYERS --- */
+  .security { background: linear-gradient(160deg, var(--navy-dark) 0%, #162D4A 100%); }
+  .security h2 {
+    font-size: 48px; letter-spacing: -1.5px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  .security 
+  .layers {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 900px;
+    width: 100%;
+  }
+  .layer {
+    display: grid;
+    grid-template-columns: 50px 200px 1fr;
+    gap: 20px;
+    align-items: center;
+    padding: 20px 24px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: all 0.3s;
+  }
+  .layer:hover {
+    background: rgba(197,165,90,0.08);
+    border-color: rgba(197,165,90,0.3);
+    transform: translateX(8px);
+    box-shadow: -8px 12px 30px rgba(0,0,0,0.2);
+  }
+  .layer-num {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--gold);
+    text-align: center;
+  }
+  .layer-name {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .layer-desc {
+    font-size: 13px;
+    color: var(--gray-400);
+    line-height: 1.5;
+  }
+
+  /* --- SLIDE 6: CONSENT FLOW --- */
+  .consent { background: linear-gradient(160deg, #0D1B2A 0%, var(--navy-dark) 100%); }
+  .consent h2 {
+    font-size: 48px; letter-spacing: -1.5px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  .consent 
+  .flow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    max-width: 700px;
+    width: 100%;
+    position: relative;
+  }
+  .flow-steps::before {
+    content: '';
+    position: absolute;
+    left: 24px;
+    top: 30px;
+    bottom: 30px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--blue), var(--gold), var(--red), var(--gold), var(--green));
+    opacity: 0.3;
+  }
+  .flow-step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 14px 0;
+    position: relative;
+  }
+  .flow-dot {
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 1;
+  }
+  .flow-dot.blue { background: rgba(25,118,210,0.15); border: 2px solid rgba(25,118,210,0.3); }
+  .flow-dot.gold { background: rgba(197,165,90,0.15); border: 2px solid rgba(197,165,90,0.3); }
+  .flow-dot.red { background: rgba(239,68,68,0.15); border: 2px solid rgba(239,68,68,0.3); }
+  .flow-dot.green { background: rgba(16,185,129,0.15); border: 2px solid rgba(16,185,129,0.3); }
+  .flow-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .flow-info p { font-size: 13px; color: var(--gray-400); line-height: 1.5; }
+
+  /* --- SLIDE 7: DEMO TIMESTAMPS --- */
+  .timestamps { background: linear-gradient(160deg, var(--navy-dark) 0%, #1A3352 100%); }
+  .timestamps h2 {
+    font-size: 48px; letter-spacing: -1.5px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  .timestamps 
+  .ts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 900px;
+    width: 100%;
+  }
+  .ts-card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 22px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: all 0.3s;
+  }
+  .ts-card:hover {
+    background: rgba(197,165,90,0.08);
+    border-color: rgba(197,165,90,0.3);
+    transform: translateX(8px);
+    box-shadow: -8px 12px 30px rgba(0,0,0,0.2);
+  }
+  .ts-time {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(197,165,90,0.1);
+    border: 1px solid rgba(197,165,90,0.2);
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .ts-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .ts-info p { font-size: 13px; color: var(--gray-400); line-height: 1.5; }
+
+  /* --- SLIDE 8: INSIGHT --- */
+  .insight { background: linear-gradient(160deg, #0D1B2A 0%, var(--navy-dark) 100%); }
+  .insight-box {
+    max-width: 800px;
+    text-align: center;
+  }
+  .insight h2 {
+    font-size: 48px; letter-spacing: -1.5px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 40px;
+  }
+  .insight 
+  .insight-items {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: left;
+  }
+  .insight-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 24px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .insight-num {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(197,165,90,0.12);
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .insight-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .insight-item p { font-size: 13px; color: var(--gray-400); line-height: 1.6; }
+
+  /* --- SLIDE 9: CTA --- */
+  .cta { background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%); }
+  .cta::before {
+    content: '';
+    position: absolute;
+    bottom: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(197,165,90,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-content { text-align: center; max-width: 700px; }
+  .cta-content h2 {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    margin-bottom: 16px;
+    line-height: 1.1;
+  }
+  .cta-content 
+  .cta-content p {
+    font-size: 18px;
+    color: var(--gray-400);
+    margin-bottom: 36px;
+    line-height: 1.6;
+  }
+  .cta-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  /* --- SLIDE COUNTER --- */
+  .slide-counter {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-400);
+    background: rgba(15, 36, 64, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    z-index: 100;
+  }
+
+  
+  /* --- SLIDE NAV BTNS (ULTRA-MODERN) --- */
+  .nav-btn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.4);
+    border-radius: 100px;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    outline: none;
+    z-index: 100;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .nav-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 100px;
+    background: radial-gradient(circle at center, rgba(197, 165, 90, 0.2), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+  }
+  .nav-btn:hover {
+    color: var(--gold);
+    border-color: rgba(197, 165, 90, 0.5);
+    background: rgba(15, 36, 64, 0.6);
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 0 30px rgba(197, 165, 90, 0.15), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .nav-btn:hover::before { opacity: 1; }
+  .nav-btn:active { transform: translateY(-50%) scale(0.95); }
+  .nav-btn:disabled { opacity: 0; pointer-events: none; transform: translateY(-50%) translateX(-20px); filter: blur(8px); }
+  .next-btn:disabled { transform: translateY(-50%) translateX(20px); }
+  .prev-btn { left: 40px; }
+  .next-btn { right: 40px; }
+
+
+  /* --- RESPONSIVE --- */
+  @media (max-width: 900px) {
+    .slide { padding: 40px 24px; }
+    .hero-title { font-size: 48px; letter-spacing: -1.5px; }
+    .solution-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .ts-grid { grid-template-columns: 1fr; }
+    .layer { grid-template-columns: 40px 1fr; }
+    .layer-desc { grid-column: 1 / -1; }
+  }
+
+  /* --- ANIMATIONS --- */
+
+  @keyframes panGrid {
+    from { background-position: 0 0; }
+    to { background-position: 600px 600px; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(197,165,90,0.2); }
+    50% { transform: translateY(-12px); box-shadow: 0 32px 72px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,165,90,0.4); }
+  }
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(40px); filter: blur(12px); }
+    100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  
+  .slide { 
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.9s;
+  }
+  
+  .slide > * { opacity: 0; }
+  .slide.active > *:nth-child(1) { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+  .slide.active > *:nth-child(2) { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both; }
+  .slide.active > *:nth-child(3) { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
+  .slide.active > *:nth-child(4) { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both; }
+  .slide.active > *:nth-child(5) { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both; }
+  .slide.active .stagger-1 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.10s both; }
+  .slide.active .stagger-2 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.20s both; }
+  .slide.active .stagger-3 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
+  .slide.active .stagger-4 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.40s both; }
+  .slide.active .stagger-5 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.50s both; }
+  .slide.active .stagger-6 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.60s both; }
+  .slide.active .stagger-7 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.70s both; }
+  .slide.active .stagger-8 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.80s both; }
+  .slide.active .stagger-9 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.90s both; }
+  .slide.active .stagger-10 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.00s both; }
+  .slide.active .stagger-11 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.10s both; }
+  .slide.active .stagger-12 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.20s both; }
+  .slide.active .stagger-13 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.30s both; }
+  .slide.active .stagger-14 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.40s both; }
+  .slide.active .stagger-15 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.50s both; }
+</style>
+</head>
+<body class="grid-bg">
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="https://beriwo-inc.web.app/" class="nav-logo">
+    <img src="/logo.png" alt="Beriwo">
+    Ber!wo
+  </a>
+  <div class="nav-links">
+    <a href="#problem">Problem</a>
+    <a href="#solution">Solution</a>
+    <a href="#features">Auth0 Features</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#security">Security</a>
+    <a href="#flow">Consent Flow</a>
+    <a href="#timestamps">Demo Script</a>
+    <a href="#insight">Insight</a>
+  </div>
+  <span class="nav-badge">HACKATHON SUBMISSION</span>
+</nav>
+
+
+<!-- SLIDE NAV BUTTONS -->
+<button id="btn-prev" class="nav-btn prev-btn"><i class="ph-light ph-caret-left"></i></button>
+<button id="btn-next" class="nav-btn next-btn"><i class="ph-light ph-caret-right"></i></button>
+
+<!-- SLIDE COUNTER -->
+<div class="slide-counter" id="counter">1 / 9</div>
+
+<!-- SLIDE 1: HERO -->
+<section class="slide hero" id="hero">
+  <div class="hero-content">
+    <img src="/logo.png" alt="Beriwo Logo" class="hero-logo">
+    <h1 class="hero-title">Authorized to Act.<br><span>Never Trusted to Hold the Keys.</span></h1>
+    <p class="hero-sub">Your Autonomous AI Operator that reads your Gmail, manages your Calendar, and searches your Drive — secured by Auth0 Token Vault.</p>
+    <p style="font-size:16px;color:var(--gray-400);margin-bottom:32px;font-weight:600;letter-spacing:0.5px;">Presented by <span style="color:var(--gold);font-weight:700;">Emmanuel Veranyuy Mfon</span> — Senior Software Engineer</p>
+    <div class="hero-links">
+      <a href="https://beriwo-inc.web.app" class="btn btn-gold" target="_blank"><i class="ph-fill ph-play-circle"></i>&ensp;Live Demo</a>
+      <a href="https://github.com/Medialordofficial/Beriwo" class="btn btn-outline" target="_blank"><i class="ph-fill ph-github-logo"></i>&ensp;GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: PROBLEM -->
+<section class="slide problem" id="problem">
+  <span class="timestamp">0:00 – 0:15</span>
+  <p class="problem-quote">AI agents are powerful.<br>But giving them your <em>credentials</em>?<br>That's terrifying.</p>
+  <p class="problem-followup">What if an AI could act on your behalf — read your email, manage your calendar, search your files — without ever seeing a single token?</p>
+</section>
+
+<!-- SLIDE 3: SOLUTION -->
+<section class="slide solution" id="solution">
+  <span class="timestamp">0:15 – 0:30</span>
+  <div class="solution-grid">
+    <div class="solution-text">
+      <h2>Zero-Trust <span>AI Pipeline</span></h2>
+      <p>Beriwo uses <strong>Auth0 Token Vault</strong> to create a zero-trust boundary between the AI and user credentials. The AI can <em>request</em> tool execution, but credentials are resolved server-side — the model never sees a single token.</p>
+      <p>A <strong>3-phase sandboxed pipeline</strong> enforces security at every layer: the AI is never simultaneously given tools and the ability to talk to users.</p>
+    </div>
+    <div class="pipeline-box">
+      <div class="pipeline-phases">
+        <div class="phase phase-1">
+          <div class="phase-num">1</div>
+          <div class="phase-info">
+            <h4>Sandbox Planner</h4>
+            <p>Produces a structured JSON plan. Cannot execute anything.</p>
+            <div class="phase-tags">
+              <span class="phase-tag">NO tools</span>
+              <span class="phase-tag">NO tokens</span>
+            </div>
+          </div>
+        </div>
+        <div class="phase phase-2">
+          <div class="phase-num">2</div>
+          <div class="phase-info">
+            <h4>Secure Executor</h4>
+            <p>Token Vault resolves credentials. RBAC + Consent + Step-up enforced.</p>
+            <div class="phase-tags">
+              <span class="phase-tag ok">Token Vault</span>
+              <span class="phase-tag ok">RBAC Gate</span>
+              <span class="phase-tag ok">FGA Audit</span>
+            </div>
+          </div>
+        </div>
+        <div class="phase phase-3">
+          <div class="phase-num">3</div>
+          <div class="phase-info">
+            <h4>Synthesis Module</h4>
+            <p>Formats results for the user. No tool access whatsoever.</p>
+            <div class="phase-tags">
+              <span class="phase-tag">NO tools</span>
+              <span class="phase-tag">NO tokens</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: AUTH0 FEATURES -->
+<section class="slide features" id="features">
+  <span class="timestamp">0:30 – 1:00 &nbsp;·&nbsp; AUTH0 LOGIN + RBAC</span>
+  <div class="features-header">
+    <h2>7 <span>Auth0</span> Features</h2>
+    <p>Deep integration across the entire authorization lifecycle</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card stagger-2">
+      <div class="feature-icon" style="background:rgba(25,118,210,0.12); color:var(--blue-light)"><i class="ph-fill ph-lock-key"></i></div>
+      <h3>Token Vault</h3>
+      <p>Every tool wrapped with <code>defineProtectedTool()</code>. AI requests tool calls — credentials resolved server-side. The model never sees a token.</p>
+    </div>
+    <div class="feature-card stagger-3">
+      <div class="feature-icon" style="background:rgba(197,165,90,0.12); color:var(--gold)"><i class="ph-fill ph-gear-six"></i></div>
+      <h3>Post-Login Action</h3>
+      <p>Custom Auth0 Action enriches JWTs with <code>ai_tier</code>, <code>ai_tools</code>, <code>ai_can_write</code>, <code>ai_max_calls</code> claims at login time.</p>
+    </div>
+    <div class="feature-card stagger-4">
+      <div class="feature-icon" style="background:rgba(16,185,129,0.12); color:var(--green)"><i class="ph-fill ph-check-circle"></i></div>
+      <h3>Consent Gate</h3>
+      <p>Write tools physically removed from executor unless user explicitly approves. Code-level enforcement, not a prompt instruction.</p>
+    </div>
+    <div class="feature-card stagger-5">
+      <div class="feature-icon" style="background:rgba(239,68,68,0.12); color:#F87171"><i class="ph-fill ph-shield-chevron"></i></div>
+      <h3>Step-Up Auth</h3>
+      <p>High-risk ops check JWT <code>auth_time</code>. If login is older than 5 minutes, re-authentication required via Auth0 popup.</p>
+    </div>
+    <div class="feature-card stagger-6">
+      <div class="feature-icon" style="background:rgba(168,85,247,0.12); color:#C084FC"><i class="ph-fill ph-list-magnifying-glass"></i></div>
+      <h3>FGA Audit Trail</h3>
+      <p>Every tool authorization decision logged: userId, action, resource, decision (allow/deny), reason, tier, timestamp.</p>
+    </div>
+    <div class="feature-card stagger-7">
+      <div class="feature-icon" style="background:rgba(251,146,60,0.12); color:#FB923C"><i class="ph-bold ph-arrows-clockwise"></i></div>
+      <h3>Token Refresh</h3>
+      <p>Google social connection with <code>offline_access</code>. Automatic token refresh when the 1-hour access token expires.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE: ARCHITECTURE (AUTH0 CRITERIA) -->
+<section class="slide security" style="background: linear-gradient(160deg, var(--navy-dark) 0%, #11223A 100%);" id="architecture">
+  <span class="timestamp" style="margin-bottom: 24px;">AUTH0 HACKATHON CRITERIA</span>
+  <h2>System <span>Architecture</span></h2>
+  <div class="layers">
+    <div class="layer stagger-2">
+      <div class="layer-num" style="color: var(--blue-light);"><i class="ph-fill ph-lock-key"></i></div>
+      <div class="layer-name">Token Vault</div>
+      <div class="layer-desc">The AI never touches credentials. API calls are managed via request execution, and the Vault securely resolves access tokens completely server-side.</div>
+    </div>
+    <div class="layer stagger-3">
+      <div class="layer-num" style="color: var(--green);"><i class="ph-fill ph-cube"></i></div>
+      <div class="layer-name">Sandboxing</div>
+      <div class="layer-desc">A strict 3-phase pipeline separates planning, execution, and synthesis. The model logic boundary physically isolates user communication from tool execution.</div>
+    </div>
+    <div class="layer stagger-4">
+      <div class="layer-num" style="color: var(--red);"><i class="ph-fill ph-shield-chevron"></i></div>
+      <div class="layer-name">Step-up Auth</div>
+      <div class="layer-desc">High-risk and sensitive write operations mandate a JWT <code>auth_time</code> evaluation. Sessions older than 5 minutes trigger an immediate re-authorization challenge.</div>
+    </div>
+    <div class="layer stagger-5">
+      <div class="layer-num" style="color: var(--gold);"><i class="ph-fill ph-hand-palm"></i></div>
+      <div class="layer-name">Consent Flow</div>
+      <div class="layer-desc">All state-changing tools are physically removed from the AI's execution capabilities until the human explicitly grants approval through an interactive UI gate.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 5: SECURITY LAYERS -->
+<section class="slide security" id="security">
+  <span class="timestamp">2:30 – 3:00 &nbsp;·&nbsp; ARCHITECTURE RECAP</span>
+  <h2>5 Layers of <span>Security</span></h2>
+  <div class="layers">
+    <div class="layer stagger-2">
+      <div class="layer-num">1</div>
+      <div class="layer-name">Sandboxed AI</div>
+      <div class="layer-desc">3-phase pipeline — AI never has tools + user communication simultaneously. Prevents prompt injection exploiting tool access.</div>
+    </div>
+    <div class="layer stagger-3">
+      <div class="layer-num">2</div>
+      <div class="layer-name">RBAC</div>
+      <div class="layer-desc">Auth0 Action enriches JWT with tier claims → Policy Gate physically removes unauthorized tools from the executor.</div>
+    </div>
+    <div class="layer stagger-4">
+      <div class="layer-num">3</div>
+      <div class="layer-name">Consent Gate</div>
+      <div class="layer-desc">Write tools don't exist in the executor's registry unless a human approves. Code enforcement, not prompt instructions.</div>
+    </div>
+    <div class="layer stagger-5">
+      <div class="layer-num">4</div>
+      <div class="layer-name">Step-Up Auth</div>
+      <div class="layer-desc">JWT <code>auth_time</code> check with 5-minute window. Stale sessions require re-authentication for sensitive operations.</div>
+    </div>
+    <div class="layer stagger-6">
+      <div class="layer-num">5</div>
+      <div class="layer-name">FGA Audit</div>
+      <div class="layer-desc">Every decision (allow/deny) logged with user, action, resource, decision, and reason. Full compliance trail.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6: CONSENT FLOW -->
+<section class="slide consent" id="flow">
+  <span class="timestamp">1:45 – 2:30 &nbsp;·&nbsp; LIVE DEMO: WRITE OPS</span>
+  <h2>How the <span>Consent Flow</span> Works</h2>
+  <div class="flow-steps">
+    <div class="flow-step stagger-2">
+      <div class="flow-dot blue"><i class="ph-fill ph-chat-circle-text"></i></div>
+      <div class="flow-info">
+        <h4>User: "Send an email to my wife tina Javynyuy and tell her to pick up my son ethan from the daycare at 15:00, since i wont be able to close earlier than planned.."</h4>
+        <p>Natural language request involving a write operation.</p>
+      </div>
+    </div>
+    <div class="flow-step stagger-3">
+      <div class="flow-dot blue"><i class="ph-fill ph-clipboard-text"></i></div>
+      <div class="flow-info">
+        <h4>Phase 1 — Planner (NO tools, NO tokens)</h4>
+        <p>Plans: [read_email, send_email]. Cannot execute anything.</p>
+      </div>
+    </div>
+    <div class="flow-step stagger-4">
+      <div class="flow-dot red"><i class="ph-bold ph-prohibit"></i></div>
+      <div class="flow-info">
+        <h4>Policy Gate — send_email BLOCKED</h4>
+        <p>RBAC ✓ (pro tier) → Consent ✗ (not approved) → FGA logs DENY. Tool physically removed from executor.</p>
+      </div>
+    </div>
+    <div class="flow-step stagger-5">
+      <div class="flow-dot gold"><i class="ph-fill ph-hand-palm"></i></div>
+      <div class="flow-info">
+        <h4>Consent Card — User clicks "Approve"</h4>
+        <p>Frontend shows blocked writes. User explicitly approves send_email.</p>
+      </div>
+    </div>
+    <div class="flow-step stagger-6">
+      <div class="flow-dot green"><i class="ph-fill ph-check-circle"></i></div>
+      <div class="flow-info">
+        <h4>Policy Gate passes — Token Vault resolves credentials</h4>
+        <p>RBAC ✓ → Consent ✓ → Step-up ✓ → FGA logs ALLOW. Email sent via Gmail API. AI never saw the token.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7: DEMO TIMESTAMPS -->
+<section class="slide timestamps" id="timestamps">
+  <h2>Demo <span>Script</span></h2>
+  <div class="ts-grid">
+    <div class="ts-card stagger-2">
+      <div class="ts-time">0:00</div>
+      <div class="ts-info">
+        <h4>The Hook</h4>
+        <p>Problem statement: AI agents need your data, but credentials exposure is terrifying.</p>
+      </div>
+    </div>
+    <div class="ts-card stagger-3">
+      <div class="ts-time">0:15</div>
+      <div class="ts-info">
+        <h4>Intro</h4>
+        <p>Beriwo reveal — 10 tools, Token Vault, zero-trust. Show live app.</p>
+      </div>
+    </div>
+    <div class="ts-card stagger-4">
+      <div class="ts-time">0:30</div>
+      <div class="ts-info">
+        <h4>Auth0 Login + RBAC</h4>
+        <p>Auth0 Universal Login, Post-Login Action, JWT custom claims for AI tiers.</p>
+      </div>
+    </div>
+    <div class="ts-card stagger-5">
+      <div class="ts-time">1:00</div>
+      <div class="ts-info">
+        <h4>Live Demo — Reads</h4>
+        <p>Query emails + calendar. Show 3-phase pipeline streaming in real time.</p>
+      </div>
+    </div>
+    <div class="ts-card stagger-6">
+      <div class="ts-time">1:45</div>
+      <div class="ts-info">
+        <h4>Live Demo — Writes</h4>
+        <p>Trigger send_email → consent card → approve → success. Show FGA audit.</p>
+      </div>
+    </div>
+    <div class="ts-card stagger-7">
+      <div class="ts-time">2:30</div>
+      <div class="ts-info">
+        <h4>Architecture Recap</h4>
+        <p>5 security layers diagram. Sandboxed AI, RBAC, Consent, Step-up, FGA.</p>
+      </div>
+    </div>
+    <div class="ts-card stagger-8">
+      <div class="ts-time">3:00</div>
+      <div class="ts-info">
+        <h4>The Insight</h4>
+        <p>Feedback for Auth0: first-class SPA flow, built-in AI RBAC, FGA integration.</p>
+      </div>
+    </div>
+    <div class="ts-card stagger-9">
+      <div class="ts-time">3:20</div>
+      <div class="ts-info">
+        <h4>Close</h4>
+        <p>"Authorized to act — but never trusted to hold the keys." Logo + links.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8: INSIGHT -->
+<section class="slide insight" id="insight">
+  <span class="timestamp">3:00 – 3:20 &nbsp;·&nbsp; FEEDBACK FOR AUTH0</span>
+  <div class="insight-box">
+    <h2>Our <span>Insight</span> for Auth0</h2>
+    <div class="insight-items">
+      <div class="insight-item stagger-2">
+        <div class="insight-num">1</div>
+        <div>
+          <h4>First-Class SPA Flow</h4>
+          <p>Leverage <code>read:user_idp_tokens</code> internally so SPA developers get seamless Token Vault without the Management API hybrid workaround.</p>
+        </div>
+      </div>
+      <div class="insight-item stagger-3">
+        <div class="insight-num">2</div>
+        <div>
+          <h4>Built-In RBAC for AI Tools</h4>
+          <p>Read custom claims from Auth0 Actions to automatically filter tool availability based on user tier — no manual policy gate code needed.</p>
+        </div>
+      </div>
+      <div class="insight-item stagger-4">
+        <div class="insight-num">3</div>
+        <div>
+          <h4>Native FGA Integration</h4>
+          <p>Built-in audit logging and per-resource permission checks for AI tool execution. Every ALLOW/DENY recorded automatically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 9: CTA -->
+<section class="slide cta" id="cta">
+  <div class="cta-content">
+    <img src="/logo.png" alt="Beriwo" style="width:80px;height:80px;border-radius:20px;margin-bottom:28px;box-shadow:0 12px 40px rgba(0,0,0,0.3);">
+    <h2>Ber!wo<br><span>Authorized to Act.</span></h2>
+    <p>Your AI assistant that's authorized to act — but never trusted to hold the keys.</p>
+    <p style="margin-top:24px;font-size:15px;font-weight:600;color:var(--gray-400);letter-spacing:0.5px;">Presented by <span style="color:var(--gold);font-weight:700;">Emmanuel Veranyuy Mfon</span> — Senior Software Engineer</p>
+    <div class="cta-links">
+      <a href="https://beriwo-inc.web.app" class="btn btn-gold" target="_blank"><i class="ph-fill ph-play-circle"></i>&ensp;Try Live Demo</a>
+      <a href="https://github.com/Medialordofficial/Beriwo" class="btn btn-outline" target="_blank"><i class="ph-fill ph-github-logo"></i>&ensp;View Source</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const counter = document.getElementById('counter');
+  let currentSlide = 0;
+
+    const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+  function updateSlides() {
+    slides.forEach((s, i) => {
+      s.classList.remove('active', 'past');
+      if (i === currentSlide) {
+        s.classList.add('active');
+
+      } else if (i < currentSlide) {
+        s.classList.add('past');
+      }
+    });
+    counter.textContent = (currentSlide + 1) + ' / ' + slides.length;
+    
+    // Update button states
+    btnPrev.disabled = currentSlide === 0;
+    btnNext.disabled = currentSlide === slides.length - 1;
+
+    // Update hash for deep linking
+    const id = slides[currentSlide].id;
+    if (id) history.replaceState(null, null, '#' + id);
+  }
+
+  btnPrev.addEventListener('click', () => {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlides();
+    }
+  });
+
+  btnNext.addEventListener('click', () => {
+    if (currentSlide < slides.length - 1) {
+      currentSlide++;
+      updateSlides();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        updateSlides();
+      }
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlides();
+      }
+    }
+  });
+
+  // Handle navigation clicks
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute('href').substring(1);
+      const targetIndex = Array.from(slides).findIndex(s => s.id === targetId);
+      if (targetIndex !== -1) {
+        currentSlide = targetIndex;
+        updateSlides();
+      }
+    });
+  });
+
+  // Init
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    const targetIndex = Array.from(slides).findIndex(s => s.id === hash);
+    if (targetIndex !== -1) currentSlide = targetIndex;
+  }
+  updateSlides();
+</script>
+</body>
+</html>

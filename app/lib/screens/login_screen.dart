@@ -128,6 +128,18 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => launchUrl(Uri.parse('/presentation/')),
+            child: const Text(
+              'Presentation',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
           const SizedBox(width: 24),
           ElevatedButton(
             onPressed: auth.loading ? null : () => auth.login(),

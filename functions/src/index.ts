@@ -15,6 +15,8 @@ const WRITE_TOOLS = new Set([
   "delete_calendar_event",
   "send_email",
   "reply_to_email",
+  "trash_email",
+  "mark_as_spam",
 ]);
 
 // High-risk writes require step-up authentication (recent login).
@@ -37,6 +39,8 @@ const TOOL_LABELS: Record<string, string> = {
   delete_calendar_event: "Deleting calendar event",
   list_drive_files: "Browsing Drive",
   read_drive_file: "Reading Drive file",
+  trash_email: "Trashing email",
+  mark_as_spam: "Marking as spam",
 };
 
 interface ExecutionStep {
@@ -341,7 +345,7 @@ function ensureApp() {
 
   // ── Tool Registry: named map enables policy-based filtering ──
   function getToolMap(): Record<string, any> {
-    const { listEmails, readEmail, sendEmail, replyToEmail } = getGmailTools();
+    const { listEmails, readEmail, sendEmail, replyToEmail, trashEmail, markAsSpam } = getGmailTools();
     const { listUpcomingEvents, createEvent, updateEvent, deleteEvent } = getCalendarTools();
     const { listDriveFiles, readDriveFile } = getDriveTools();
     return {
@@ -349,6 +353,8 @@ function ensureApp() {
       read_email: readEmail,
       send_email: sendEmail,
       reply_to_email: replyToEmail,
+      trash_email: trashEmail,
+      mark_as_spam: markAsSpam,
       list_upcoming_events: listUpcomingEvents,
       create_calendar_event: createEvent,
       update_calendar_event: updateEvent,
@@ -448,6 +454,8 @@ Available tools you can reference in your plan:
 - read_email(emailId) — Read full email content
 - send_email(to, subject, body, cc?, bcc?) — Compose and send a new email [REQUIRES USER CONSENT]
 - reply_to_email(emailId, body) — Reply to an existing email thread [REQUIRES USER CONSENT]
+- trash_email(emailId) — Move an email to Trash [REQUIRES USER CONSENT]
+- mark_as_spam(emailId) — Mark an email as spam and remove from Inbox [REQUIRES USER CONSENT]
 - list_upcoming_events(maxResults, timeMin, timeMax) — Check calendar
 - create_calendar_event(summary, startDateTime, endDateTime, description, location, attendees?) — Create event [REQUIRES USER CONSENT]. For Google Meet, add "Google Meet link will be added" in the description — Google Calendar auto-generates Meet links for events with attendees.
 - update_calendar_event(eventId, summary?, startDateTime?, endDateTime?, description?, location?) — Reschedule or edit event [REQUIRES USER CONSENT]
@@ -566,6 +574,75 @@ IMPORTANT BEHAVIORS:
   }
 
   // ── Core 3-phase pipeline (reused by /chat, /resume, /approve) ──
+
+  // ── FAST PLAN DETECTOR ──
+  // Detects simple single-intent operations and returns a pre-built plan,
+  // bypassing the planner LLM call entirely (~2-3s savings).
+  function detectFastPlan(lowerMsg: string, originalMsg: string): any | null {
+    // Delete / trash email
+    if ((lowerMsg.includes('delete email') || lowerMsg.includes('trash email') || lowerMsg.includes('move') && lowerMsg.includes('trash'))
+        && !lowerMsg.includes('all') && !lowerMsg.includes('every')) {
+      return {
+        type: "plan",
+        reasoning: "User wants to trash a specific email",
+        steps: [
+          { tool: "list_emails", args: { maxResults: 5, query: "" }, purpose: "Find the email to trash" },
+          { tool: "trash_email", args: { emailId: "from_list" }, purpose: "Move email to trash" },
+        ],
+        synthesisHint: "Confirm the email was trashed successfully",
+      };
+    }
+    // Mark as spam
+    if (lowerMsg.includes('mark') && lowerMsg.includes('spam')) {
+      return {
+        type: "plan",
+        reasoning: "User wants to mark email as spam",
+        steps: [
+          { tool: "list_emails", args: { maxResults: 5, query: "" }, purpose: "Find the email" },
+          { tool: "mark_as_spam", args: { emailId: "from_list" }, purpose: "Mark as spam" },
+        ],
+        synthesisHint: "Confirm the email was marked as spam",
+      };
+    }
+    // Check/read emails
+    if ((lowerMsg.includes('check') || lowerMsg.includes('read') || lowerMsg.includes('show') || lowerMsg.includes('list'))
+        && (lowerMsg.includes('email') || lowerMsg.includes('inbox') || lowerMsg.includes('mail'))) {
+      return {
+        type: "plan",
+        reasoning: "User wants to check emails",
+        steps: [
+          { tool: "list_emails", args: { maxResults: 10, query: "" }, purpose: "Fetch recent emails" },
+        ],
+        synthesisHint: "Summarize the emails with sender, subject, and key snippets",
+      };
+    }
+    // Check calendar
+    if ((lowerMsg.includes('check') || lowerMsg.includes('show') || lowerMsg.includes('list') || lowerMsg.includes('what'))
+        && (lowerMsg.includes('calendar') || lowerMsg.includes('meeting') || lowerMsg.includes('schedule') || lowerMsg.includes('event'))) {
+      return {
+        type: "plan",
+        reasoning: "User wants to check calendar",
+        steps: [
+          { tool: "list_upcoming_events", args: { maxResults: 10 }, purpose: "Fetch upcoming events" },
+        ],
+        synthesisHint: "List meetings with times, attendees, and any conflicts",
+      };
+    }
+    // Cancel/delete meeting
+    if ((lowerMsg.includes('cancel') || lowerMsg.includes('delete')) && (lowerMsg.includes('meeting') || lowerMsg.includes('event'))) {
+      return {
+        type: "plan",
+        reasoning: "User wants to cancel a meeting",
+        steps: [
+          { tool: "list_upcoming_events", args: { maxResults: 10 }, purpose: "Find the event" },
+          { tool: "delete_calendar_event", args: { eventId: "from_list" }, purpose: "Delete the event" },
+        ],
+        synthesisHint: "Confirm the meeting was cancelled",
+      };
+    }
+    return null;
+  }
+
   // ── FGA-style audit trail: log every authorization decision ──
   async function logAuthzDecision(db: any, admin: any, entry: {
     userId: string;
@@ -614,9 +691,25 @@ IMPORTANT BEHAVIORS:
     const steps: ExecutionStep[] = [];
     let plan: any = null;
 
-    // Load cross-conversation memory
-    const memoryFacts = await loadMemory(userId);
-    logger.info(`Pipeline: userId=${userId}, memoryFacts=${memoryFacts.length}`);
+    // Load cross-conversation memory in parallel with planning
+    const memoryPromise = loadMemory(userId);
+
+    // ── FAST PATH: detect simple single-intent operations ──
+    // Skip the planner entirely for common patterns to save ~2-3s
+    const lowerMsg = message.toLowerCase();
+    const fastPlan = detectFastPlan(lowerMsg, message);
+
+    let memoryFacts: string[];
+
+    if (fastPlan) {
+      memoryFacts = await memoryPromise;
+      plan = fastPlan;
+      logger.info(`Fast path: skipping planner, plan=${JSON.stringify(plan).substring(0, 200)}`);
+      onEvent?.("phase", { name: "planning", status: "started" });
+      onEvent?.("phase", { name: "planning", status: "done", type: "plan", stepCount: plan.steps?.length });
+    } else {
+      memoryFacts = await memoryPromise;
+      logger.info(`Pipeline: userId=${userId}, memoryFacts=${memoryFacts.length}`);
 
     // ═══════════════════════════════════════════════════
     // PHASE 1: SANDBOX PLANNER (no tools, no tokens)
@@ -629,6 +722,7 @@ IMPORTANT BEHAVIORS:
     }
     const plannerChat = plannerSession.chat({
       system: getSandboxSystemPrompt(memoryFacts),
+      config: { temperature: 0 },
     });
     const planResponse = await plannerChat.send(message);
     const planText = planResponse.text?.trim() || "";
@@ -671,6 +765,8 @@ IMPORTANT BEHAVIORS:
         plan,
       };
     }
+
+    } // end of else (non-fast-path)
 
     // ═══════════════════════════════════════════════════
     // PHASE 2: POLICY GATE + SECURE EXECUTION
@@ -765,6 +861,37 @@ IMPORTANT BEHAVIORS:
     }
 
     logger.info(`Policy gate: allowed=${allowedToolNames.join(',')}, blocked=${blockedWriteSteps.map((s: any) => s.tool).join(',')}`);
+
+    // ── FAST EXIT: all steps are blocked (consent needed), skip execution + synthesis ──
+    if (hasBlockedWrites && allowedToolNames.length === 0) {
+      logger.info("All steps blocked — returning consent prompt without execution");
+      onEvent?.("phase", { name: "executing", status: "done", tools: [] });
+      onEvent?.("phase", { name: "synthesizing", status: "done" });
+
+      const blockedLabels = blockedWriteSteps.map((s: any) => TOOL_LABELS[s.tool] || s.tool).join(', ');
+      const quickReply = `I need your approval to proceed with: **${blockedLabels}**. Please use the Approve button below to grant consent.`;
+
+      await db.collection("conversations").doc(convoId).collection("messages").add({
+        role: "model",
+        text: quickReply,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      return {
+        reply: quickReply,
+        toolsUsed: [],
+        steps,
+        phases: { planned: true, executed: true, synthesized: true },
+        plan: plan ? { reasoning: plan.reasoning, stepCount: plan.steps?.length } : null,
+        blockedWrites: blockedWriteSteps.map((s: any) => ({
+          tool: s.tool,
+          label: TOOL_LABELS[s.tool] || s.tool,
+          args: s.args,
+          purpose: s.purpose,
+        })),
+      };
+    }
+
     onEvent?.("phase", { name: "executing", status: "started", allowedTools: allowedToolNames, blockedTools: blockedWriteSteps.map((s: any) => s.tool) });
     // Build a structured prompt that feeds the plan to the executor
     let executorPrompt = message;
@@ -791,6 +918,7 @@ IMPORTANT BEHAVIORS:
             : undefined,
         ),
         tools: executorTools,
+        config: { temperature: 0 },
       });
       return chat.send(executorPrompt);
     };
@@ -846,13 +974,14 @@ IMPORTANT BEHAVIORS:
 
     // ═══════════════════════════════════════════════════
     // PHASE 2.5: MULTI-PASS REFLECTION LOOP — up to 3 passes
-    // Each pass checks if the executor missed tools, re-runs if needed
+    // Skip reflection for simple plans (≤2 tools) to save time
     // ═══════════════════════════════════════════════════
     const MAX_REFLECTION_PASSES = 3;
     const rawResult = response.text || "";
     let finalResult = rawResult;
+    const isSimplePlan = (plan?.steps?.length || 0) <= 2;
 
-    if (plan?.type === "plan" && executedTools.length > 0) {
+    if (!isSimplePlan && plan?.type === "plan" && executedTools.length > 0) {
       for (let pass = 0; pass < MAX_REFLECTION_PASSES; pass++) {
         const missingTools = allowedToolNames.filter(t => !executedTools.includes(t));
         if (missingTools.length === 0) break;
@@ -920,12 +1049,26 @@ IMPORTANT BEHAVIORS:
 
     // ═══════════════════════════════════════════════════
     // PHASE 3: SYNTHESIS (no tools, no tokens)
+    // For simple plans with ≤1 read tool and blocked writes, skip LLM synthesis
     // ═══════════════════════════════════════════════════
     logger.info("Phase 3: Synthesis...");
     onEvent?.("phase", { name: "executing", status: "done", tools: executedTools });
     onEvent?.("phase", { name: "synthesizing", status: "started" });
 
-    const synthesisPrompt = `The user asked: "${message}"
+    let finalReply: string;
+
+    // Skip synthesis LLM for simple operations where the executor result is sufficient
+    if (isSimplePlan && executedTools.length <= 2 && !hasBlockedWrites && finalResult.length < 2000) {
+      logger.info("Simple plan — skipping synthesis LLM, using executor result directly");
+      const { cleanText: directReply, facts: directFacts } = extractMemoryFacts(finalResult);
+      if (directFacts.length > 0) {
+        await saveMemory(userId, directFacts);
+      }
+      finalReply = (directReply && directReply.trim().length > 0)
+        ? directReply
+        : finalResult || "Done.";
+    } else {
+      const synthesisPrompt = `The user asked: "${message}"
 
 The secure executor produced this raw result:
 ---
@@ -939,25 +1082,27 @@ ${hasBlockedWrites ? `\nBLOCKED ACTIONS: The following write operations were blo
 
 ${plan?.synthesisHint ? `Presentation hint: ${plan.synthesisHint}` : ''}
 
-Format a clear, helpful response for the user. Use markdown.`;
+Format a clear, helpful response for the user. Use markdown. Be concise.`;
 
-    const synthesisSession = ai.createSession();
-    const synthesisChat = synthesisSession.chat({
-      system: getSynthesisSystemPrompt(),
-    });
-    const synthesisResponse = await synthesisChat.send(synthesisPrompt);
-    const synthesisText = synthesisResponse.text || finalResult;
+      const synthesisSession = ai.createSession();
+      const synthesisChat = synthesisSession.chat({
+        system: getSynthesisSystemPrompt(),
+        config: { temperature: 0 },
+      });
+      const synthesisResponse = await synthesisChat.send(synthesisPrompt);
+      const synthesisText = synthesisResponse.text || finalResult;
 
-    // Extract and save any memory facts from synthesis
-    const { cleanText: reply, facts: synthFacts } = extractMemoryFacts(synthesisText);
-    if (synthFacts.length > 0) {
-      await saveMemory(userId, synthFacts);
-      logger.info(`Saved ${synthFacts.length} synthesis memory facts`);
+      // Extract and save any memory facts from synthesis
+      const { cleanText: reply, facts: synthFacts } = extractMemoryFacts(synthesisText);
+      if (synthFacts.length > 0) {
+        await saveMemory(userId, synthFacts);
+        logger.info(`Saved ${synthFacts.length} synthesis memory facts`);
+      }
+
+      finalReply = (reply && reply.trim().length > 0)
+        ? reply
+        : finalResult || "I wasn't able to complete that request. Please try again.";
     }
-
-    const finalReply = (reply && reply.trim().length > 0)
-      ? reply
-      : finalResult || "I wasn't able to complete that request. Please try again.";
 
     // Store the synthesized response
     await db.collection("conversations").doc(convoId).collection("messages").add({
@@ -1273,23 +1418,24 @@ Format a clear, helpful response for the user. Use markdown.`;
 
     sendSSE("started", { conversationId: convoId });
 
-    const historySnap = await db
-      .collection("conversations")
-      .doc(convoId)
-      .collection("messages")
-      .orderBy("timestamp", "asc")
-      .limit(50)
-      .get();
+    // Load history and save user message in parallel
+    const [historySnap] = await Promise.all([
+      db.collection("conversations")
+        .doc(convoId)
+        .collection("messages")
+        .orderBy("timestamp", "asc")
+        .limit(50)
+        .get(),
+      db.collection("conversations").doc(convoId).collection("messages").add({
+        role: "user",
+        text: message,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      }),
+    ]);
 
     const history = historySnap.docs.map((doc: any) => {
       const d = doc.data();
       return { role: d.role as "user" | "model", content: [{ text: d.text }] };
-    });
-
-    await db.collection("conversations").doc(convoId).collection("messages").add({
-      role: "user",
-      text: message,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     try {
@@ -1351,7 +1497,7 @@ Format a clear, helpful response for the user. Use markdown.`;
   return _app;
 }
 
-export const api = onRequest((req, res) => {
+export const api = onRequest({ timeoutSeconds: 300, memory: "512MiB" }, (req, res) => {
   const app = ensureApp();
   return app(req, res);
 });
