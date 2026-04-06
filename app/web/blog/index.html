@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Introducing Beriwo: A Network of AI Agents That Acts on Your Behalf</title>
+  <style>
+    :root {
+      --bg: #0F1F33;
+      --text: #F3F4F6;
+      --accent: #C5A55A;
+      --navy: #1B3A5C;
+      --gray: #9CA3AF;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: var(--bg);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text);
+      font-family: Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    .logo-box {
+      width: 36px;
+      height: 36px;
+      background-color: var(--navy);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+    }
+    .logo-box span:last-child, .logo span.accent {
+      color: var(--accent);
+    }
+    .back-btn {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .back-btn:hover {
+      text-decoration: underline;
+    }
+    article {
+      max-width: 800px;
+      margin: 4rem auto;
+      padding: 0 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+      color: white;
+    }
+    .meta {
+      color: var(--gray);
+      font-style: italic;
+      margin-bottom: 3rem;
+      font-size: 1.1rem;
+    }
+    h2 {
+      font-size: 1.75rem;
+      color: white;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+    }
+    h3 {
+      font-size: 1.25rem;
+      color: var(--text);
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+    }
+    strong {
+      color: white;
+    }
+    em {
+      color: var(--accent);
+    }
+    ul, ol {
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+      padding-left: 1.5rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--gray);
+      margin-top: 5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/" class="logo">
+      <div class="logo-box">
+        <span>B</span><span>.</span>
+      </div>
+      <span>Ber<span class="accent">!</span>wo</span>
+    </a>
+    <a href="/" class="back-btn">&larr; Back to App</a>
+  </header>
+
+  <article>
+    <h1>Introducing Beriwo: A Network of AI Agents That Acts on Your Behalf</h1>
+    <div class="meta">Built for Auth0 Hackathon 2026<br>By Emmanuel Veranyuy Mfon</div>
+
+    <p>We interact with chat assistants every single day, asking them to generate text, summarize documents, or write code. But what happens when you want an agent to actually <em>do</em> something for you?</p>
+
+    <p>What if you could say: <em>"Check my email, find the itinerary for my trip tomorrow, put the flight details into my Google Calendar, and text my wife Tina to remind her to pick up my son Ethan"</em>?</p>
+
+    <p>General-purpose assistants fall short here. They lack the native authority to interact with personal data securely. They don't have a reliable memory of who your family members are, and handing over full read/write access to your digital life directly to a language model is a massive security risk.</p>
+
+    <p>Enter <strong>Beriwo</strong>.</p>
+
+    <h2>What is Beriwo?</h2>
+    <p>Beriwo is a network of AI agents designed to act on your behalf. Unlike standard chatbots, Beriwo plans, executes secure tool calls, reflects on results, and synthesizes responses in a seamless, autonomous loop.</p>
+    <p>With Beriwo, your AI takes action while keeping you entirely in control.</p>
+
+    <h2>The Architecture of Trust</h2>
+    <p>Building an autonomous agent requires a fundamentally different approach to security. Beriwo achieves this using a <strong>Zero-Trust Architecture</strong> powered by Auth0.</p>
+
+    <h3>1. Auth0 Token Vault &amp; Secure Proxies</h3>
+    <p>To ensure absolute security, your Google API credentials never touch the underlying language model. Instead, Beriwo relies on the <strong>Auth0 Token Vault</strong>. When the agent identifies that it needs to perform an action (like reading an email or creating a calendar event), it routes the request through a secure proxy. The proxy attaches the necessary OAuth tokens on the fly, meaning the AI only ever sees the inputs and outputs, never the keys to your digital life.</p>
+
+    <h3>2. Fine-Grained Authorization (FGA)</h3>
+    <p>We implemented <strong>Auth0 FGA</strong> to ensure that actions are tightly scoped. Reading a calendar event requires a different level of permission than booking a flight. FGA ensures that the agent's capabilities are strictly governed by explicit access policies that verify exactly what the agent is authorized to do at any given moment.</p>
+
+    <h3>3. Consent-Gated Execution (Human-in-the-Loop)</h3>
+    <p>Complete transparency is non-negotiable. Beriwo can read autonomously to gather context, but it hits a hard stop before altering anything. The system uses <strong>Consent-Gated Execution</strong>: whenever Beriwo generates a write-action (e.g., sending an email, purchasing a ticket, or modifying a document), it explicitly pauses and prompts you for approval. Nothing is written without your explicit, on-screen consent.</p>
+
+    <h2>How the Autonomous Pipeline Works</h2>
+    <p>Beriwo isn't a simple request-response loop. It's a localized network utilizing a dynamic <strong>3-Phase Pipeline</strong>:</p>
+    
+    <ol>
+      <li><strong>Plan:</strong> When you submit a request, Beriwo breaks the objective into actionable sub-tasks.</li>
+      <li><strong>Execute:</strong> It triggers secure tool calls through the Auth0-gated proxy, pinging external services (Gmail, Calendar, Drive) securely.</li>
+      <li><strong>Reflect:</strong> It evaluates the payload returned by the APIs. If an API request fails, it adjusts the strategy and tries again before finally synthesizing the perfect response for you.</li>
+    </ol>
+
+    <p>To make the experience seamless, Beriwo utilizes <strong>Persistent Memory</strong>. Cross-session memory builds a secure profile of your contexts, routines, and relationships, dynamically shaping how the agent supports you over time—without requiring you to re-explain who "Timeline" or "Ethan" is every session.</p>
+
+    <h2>Looking Forward</h2>
+    <p>The era of AI as a conversational novelty is ending; the era of AI as an active, secure proxy is beginning. With Beriwo, we are proving that autonomous agents can be powerful, context-aware, and—most importantly—secure by design.</p>
+    
+    <p>By leveraging the Auth0 Token Vault and FGA, Beriwo provides the ultimate combination of autonomy and safety.</p>
+
+    <p style="margin-top: 3rem; text-align: center;"><em>Beriwo // Authorized to Act.</em></p>
+  </article>
+
+  <footer>
+    <p>&copy; 2026 Beriwo. Built for Auth0 Hackathon.</p>
+  </footer>
+
+</body>
+</html>

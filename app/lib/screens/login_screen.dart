@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
 
 const _navy = Color(0xFF1B3A5C);
@@ -44,9 +45,14 @@ class LoginScreen extends StatelessWidget {
     return Container(
       height: 80,
       padding: EdgeInsets.symmetric(horizontal: isDesktop ? 64 : 24),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF7F7F9),
-        border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+      decoration: BoxDecoration(
+        color: _darkBg,
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.white.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
       ),
       child: Row(
         children: [
@@ -56,10 +62,11 @@ class LoginScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: _navy,
               borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             ),
             child: Center(
               child: RichText(
-                text: TextSpan(
+                text: const TextSpan(
                   children: [
                     TextSpan(
                       text: 'B',
@@ -84,9 +91,9 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           RichText(
-            text: TextSpan(
+            text: const TextSpan(
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
@@ -110,12 +117,24 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
           const Spacer(),
+          TextButton(
+            onPressed: () => launchUrl(Uri.parse('/blog/')),
+            child: const Text(
+              'Read Blog',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 24),
           ElevatedButton(
             onPressed: auth.loading ? null : () => auth.login(),
             style: ElevatedButton.styleFrom(
               backgroundColor: _gold,
               foregroundColor: _darkBg,
-              elevation: 12,
+              elevation: 4,
               shadowColor: _gold.withValues(alpha: 0.4),
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
               shape: RoundedRectangleBorder(
@@ -123,7 +142,7 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
             child: auth.loading
-                ? SizedBox(
+                ? const SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
@@ -131,11 +150,13 @@ class LoginScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                   )
-                : Text(
+                : const Text(
                     'Get started',
                     style: TextStyle(
-                      color: Colors.grey[400],
-                      fontWeight: FontWeight.w600,
+                      color: Color(
+                        0xFF0F1F33,
+                      ), // Match _darkBg for high contrast on gold
+                      fontWeight: FontWeight.w700,
                       fontSize: 15,
                     ),
                   ),
@@ -398,39 +419,66 @@ class LoginScreen extends StatelessWidget {
   Widget _buildFooter(BuildContext context) {
     final isDesktop = _isDesktop(context);
     return Container(
-      color: _darkBg,
-      padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 64),
+      color: const Color(0xFF0F1F33), // Match _darkBg
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 64),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1000),
-          child: Wrap(
-            alignment: isDesktop
-                ? WrapAlignment.spaceBetween
-                : WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            runSpacing: 16,
+          child: Column(
             children: [
-              SizedBox(
+              Container(
                 width: double.infinity,
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'BERIWO // Authorized to Act',
+                height: 1,
+                color: Colors.white.withValues(alpha: 0.1),
+                margin: const EdgeInsets.only(bottom: 32),
+              ),
+              Wrap(
+                alignment: isDesktop
+                    ? WrapAlignment.spaceBetween
+                    : WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runSpacing: 16,
+                children: [
+                  RichText(
+                    text: const TextSpan(
                       style: TextStyle(
-                        color: _gold,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Georgia',
+                        letterSpacing: 0.5,
                       ),
+                      children: [
+                        TextSpan(
+                          text: 'B',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        TextSpan(
+                          text: '.',
+                          style: TextStyle(color: Color(0xFFC5A55A)),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 16),
-                    Text(
-                      'Built for Auth0 Hackathon 2026',
-                      style: TextStyle(color: Color(0xFF6B7280), fontSize: 13),
+                  ),
+                  const SizedBox(width: 24),
+                  const Text(
+                    'BERIWO // Authorized to Act',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 1,
                     ),
-                  ],
-                ),
+                  ),
+                  if (isDesktop) const Spacer(),
+                  const Text(
+                    'Built for Auth0 Hackathon 2026',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
