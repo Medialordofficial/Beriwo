@@ -41,7 +41,7 @@
   }
 
   /* --- SLIDES --- */
-  .slide {
+    .slide {
     position: absolute;
     top: 0; left: 0; width: 100vw; height: 100vh;
     display: flex;
@@ -52,13 +52,18 @@
     overflow: hidden;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+    transform: translateX(100px) scale(0.98);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
     z-index: 1;
   }
   .slide.active {
     opacity: 1;
     visibility: visible;
+    transform: translateX(0) scale(1);
     z-index: 10;
+  }
+  .slide.past {
+    transform: translateX(-100px) scale(0.98);
   }
 
   /* --- NAV --- */
@@ -599,6 +604,43 @@
     z-index: 100;
   }
 
+  
+  /* --- SLIDE NAV BTNS --- */
+  .slide-nav-btns {
+    position: fixed;
+    bottom: 30px;
+    left: 40px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+  }
+  .nav-btn {
+    background: rgba(15, 36, 64, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--white);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    outline: none;
+  }
+  .nav-btn:hover {
+    background: rgba(197, 165, 90, 0.2);
+    border-color: rgba(197, 165, 90, 0.5);
+    color: var(--gold);
+    transform: translateY(-2px);
+  }
+  .nav-btn:active {
+    transform: translateY(0);
+  }
+  .nav-btn:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
   /* --- RESPONSIVE --- */
   @media (max-width: 900px) {
     .slide { padding: 40px 24px; }
@@ -640,6 +682,13 @@
   </div>
   <span class="nav-badge">HACKATHON SUBMISSION</span>
 </nav>
+
+
+<!-- SLIDE NAV BUTTONS -->
+<div class="slide-nav-btns">
+  <button id="btn-prev" class="nav-btn">&#10094; Prev</button>
+  <button id="btn-next" class="nav-btn">Next &#10095;</button>
+</div>
 
 <!-- SLIDE COUNTER -->
 <div class="slide-counter" id="counter">1 / 9</div>
@@ -971,27 +1020,51 @@
   const counter = document.getElementById('counter');
   let currentSlide = 0;
 
+    const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
   function updateSlides() {
     slides.forEach((s, i) => {
+      s.classList.remove('active', 'past');
       if (i === currentSlide) {
         s.classList.add('active');
         // Restart fadeUp animation for inner elements
         const children = s.querySelectorAll('*');
         children.forEach(c => {
-          c.style.animation = 'none';
-          c.offsetHeight; // trigger reflow
-          c.style.animation = null; 
+          if(c.style.animationName === 'fadeUp') {
+            c.style.animation = 'none';
+            c.offsetHeight; // trigger reflow
+            c.style.animation = null; 
+          }
         });
-      } else {
-        s.classList.remove('active');
+      } else if (i < currentSlide) {
+        s.classList.add('past');
       }
     });
     counter.textContent = (currentSlide + 1) + ' / ' + slides.length;
     
+    // Update button states
+    btnPrev.disabled = currentSlide === 0;
+    btnNext.disabled = currentSlide === slides.length - 1;
+
     // Update hash for deep linking
     const id = slides[currentSlide].id;
     if (id) history.replaceState(null, null, '#' + id);
   }
+
+  btnPrev.addEventListener('click', () => {
+    if (currentSlide > 0) {
+      currentSlide--;
+      updateSlides();
+    }
+  });
+
+  btnNext.addEventListener('click', () => {
+    if (currentSlide < slides.length - 1) {
+      currentSlide++;
+      updateSlides();
+    }
+  });
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
