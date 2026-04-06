@@ -432,44 +432,44 @@ class LoginScreen extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.1),
                 margin: const EdgeInsets.only(bottom: 32),
               ),
-              Wrap(
-                alignment: isDesktop
-                    ? WrapAlignment.spaceBetween
-                    : WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                runSpacing: 16,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  RichText(
-                    text: const TextSpan(
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Georgia',
-                        letterSpacing: 0.5,
+                  Row(
+                    children: [
+                      RichText(
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Georgia',
+                            letterSpacing: 0.5,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'B',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            TextSpan(
+                              text: '.',
+                              style: TextStyle(color: Color(0xFFC5A55A)),
+                            ),
+                          ],
+                        ),
                       ),
-                      children: [
-                        TextSpan(
-                          text: 'B',
-                          style: TextStyle(color: Colors.white),
+                      const SizedBox(width: 24),
+                      const Text(
+                        'BERIWO // Authorized to Act',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 1,
                         ),
-                        TextSpan(
-                          text: '.',
-                          style: TextStyle(color: Color(0xFFC5A55A)),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 24),
-                  const Text(
-                    'BERIWO // Authorized to Act',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  if (isDesktop) const Spacer(),
                   const Text(
                     'Built for Auth0 Hackathon 2026',
                     style: TextStyle(
