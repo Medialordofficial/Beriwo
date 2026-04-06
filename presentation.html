@@ -27,10 +27,10 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  html {
-    scroll-behavior: smooth;
-    scroll-snap-type: y mandatory;
-    overflow-y: scroll;
+  html, body {
+    margin: 0; padding: 0;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
   }
 
   body {
@@ -42,15 +42,23 @@
 
   /* --- SLIDES --- */
   .slide {
-    min-height: 100vh;
-    scroll-snap-align: start;
+    position: absolute;
+    top: 0; left: 0; width: 100vw; height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 60px 80px;
-    position: relative;
     overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+    z-index: 1;
+  }
+  .slide.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 10;
   }
 
   /* --- NAV --- */
@@ -624,6 +632,7 @@
     <a href="#problem">Problem</a>
     <a href="#solution">Solution</a>
     <a href="#features">Auth0 Features</a>
+    <a href="#architecture">Architecture</a>
     <a href="#security">Security</a>
     <a href="#flow">Consent Flow</a>
     <a href="#timestamps">Demo Script</a>
@@ -742,6 +751,34 @@
       <div class="feature-icon" style="background:rgba(251,146,60,0.12); color:#FB923C">&#128260;</div>
       <h3>Token Refresh</h3>
       <p>Google social connection with <code>offline_access</code>. Automatic token refresh when the 1-hour access token expires.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE: ARCHITECTURE (AUTH0 CRITERIA) -->
+<section class="slide security" style="background: linear-gradient(160deg, var(--navy-dark) 0%, #11223A 100%);" id="architecture">
+  <span class="timestamp" style="margin-bottom: 24px;">AUTH0 HACKATHON CRITERIA</span>
+  <h2>System <span>Architecture</span></h2>
+  <div class="layers">
+    <div class="layer">
+      <div class="layer-num" style="color: var(--blue-light);">&#128274;</div>
+      <div class="layer-name">Token Vault</div>
+      <div class="layer-desc">The AI never touches credentials. API calls are managed via request execution, and the Vault securely resolves access tokens completely server-side.</div>
+    </div>
+    <div class="layer">
+      <div class="layer-num" style="color: var(--green);">&#128230;</div>
+      <div class="layer-name">Sandboxing</div>
+      <div class="layer-desc">A strict 3-phase pipeline separates planning, execution, and synthesis. The model logic boundary physically isolates user communication from tool execution.</div>
+    </div>
+    <div class="layer">
+      <div class="layer-num" style="color: var(--red);">&#128170;</div>
+      <div class="layer-name">Step-up Auth</div>
+      <div class="layer-desc">High-risk and sensitive write operations mandate a JWT <code>auth_time</code> evaluation. Sessions older than 5 minutes trigger an immediate re-authorization challenge.</div>
+    </div>
+    <div class="layer">
+      <div class="layer-num" style="color: var(--gold);">&#9995;</div>
+      <div class="layer-name">Consent Flow</div>
+      <div class="layer-desc">All state-changing tools are physically removed from the AI's execution capabilities until the human explicitly grants approval through an interactive UI gate.</div>
     </div>
   </div>
 </section>
@@ -930,34 +967,68 @@
 </section>
 
 <script>
-  // Slide counter
   const slides = document.querySelectorAll('.slide');
   const counter = document.getElementById('counter');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        const idx = Array.from(slides).indexOf(e.target) + 1;
-        counter.textContent = idx + ' / ' + slides.length;
+  let currentSlide = 0;
+
+  function updateSlides() {
+    slides.forEach((s, i) => {
+      if (i === currentSlide) {
+        s.classList.add('active');
+        // Restart fadeUp animation for inner elements
+        const children = s.querySelectorAll('*');
+        children.forEach(c => {
+          c.style.animation = 'none';
+          c.offsetHeight; // trigger reflow
+          c.style.animation = null; 
+        });
+      } else {
+        s.classList.remove('active');
       }
     });
-  }, { threshold: 0.5 });
-  slides.forEach(s => observer.observe(s));
+    counter.textContent = (currentSlide + 1) + ' / ' + slides.length;
+    
+    // Update hash for deep linking
+    const id = slides[currentSlide].id;
+    if (id) history.replaceState(null, null, '#' + id);
+  }
 
-  // Keyboard navigation
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
       e.preventDefault();
-      const current = Math.round(window.scrollY / window.innerHeight);
-      const next = Math.min(current + 1, slides.length - 1);
-      slides[next].scrollIntoView({ behavior: 'smooth' });
-    }
-    if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        updateSlides();
+      }
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
-      const current = Math.round(window.scrollY / window.innerHeight);
-      const prev = Math.max(current - 1, 0);
-      slides[prev].scrollIntoView({ behavior: 'smooth' });
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlides();
+      }
     }
   });
+
+  // Handle navigation clicks
+  document.querySelectorAll('.nav-links a, .nav-logo').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute('href').substring(1);
+      const targetIndex = Array.from(slides).findIndex(s => s.id === targetId);
+      if (targetIndex !== -1) {
+        currentSlide = targetIndex;
+        updateSlides();
+      }
+    });
+  });
+
+  // Init
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    const targetIndex = Array.from(slides).findIndex(s => s.id === hash);
+    if (targetIndex !== -1) currentSlide = targetIndex;
+  }
+  updateSlides();
 </script>
 </body>
 </html>
