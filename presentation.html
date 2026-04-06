@@ -79,6 +79,7 @@
       linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
     background-size: 60px 60px;
     background-position: center;
+    animation: panGrid 60s linear infinite;
     opacity: 0.5;
     mask-image: radial-gradient(circle at center, black, transparent 80%);
     -webkit-mask-image: radial-gradient(circle at center, black, transparent 80%);
@@ -153,6 +154,7 @@
   }
   .hero-content { text-align: center; max-width: 900px; }
   .hero-logo {
+    animation: float 6s ease-in-out infinite;
     width: 120px;
     height: 120px;
     border-radius: 28px;
@@ -652,38 +654,52 @@
   }
 
   
-  /* --- SLIDE NAV BTNS --- */
+  /* --- SLIDE NAV BTNS (ULTRA-MODERN) --- */
   .nav-btn {
     position: fixed;
     top: 50%;
     transform: translateY(-50%);
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(15, 36, 64, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: var(--white);
-    border-radius: 50%;
-    font-size: 28px;
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.4);
+    border-radius: 100px;
+    font-size: 24px;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     outline: none;
     z-index: 100;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .nav-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 100px;
+    background: radial-gradient(circle at center, rgba(197, 165, 90, 0.2), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
   }
   .nav-btn:hover {
-    background: var(--gold);
-    border-color: var(--gold-light);
-    color: var(--navy-dark);
-    transform: translateY(-50%) scale(1.15);
-    box-shadow: 0 0 40px rgba(197, 165, 90, 0.4);
+    color: var(--gold);
+    border-color: rgba(197, 165, 90, 0.5);
+    background: rgba(15, 36, 64, 0.6);
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 0 30px rgba(197, 165, 90, 0.15), inset 0 1px 0 rgba(255,255,255,0.2);
   }
+  .nav-btn:hover::before { opacity: 1; }
   .nav-btn:active { transform: translateY(-50%) scale(0.95); }
-  .nav-btn:disabled { opacity: 0; pointer-events: none; transform: translateY(-50%) scale(0.8); }
-  .prev-btn { left: 24px; }
-  .next-btn { right: 24px; }
+  .nav-btn:disabled { opacity: 0; pointer-events: none; transform: translateY(-50%) translateX(-20px); filter: blur(8px); }
+  .next-btn:disabled { transform: translateY(-50%) translateX(20px); }
+  .prev-btn { left: 40px; }
+  .next-btn { right: 40px; }
 
 
   /* --- RESPONSIVE --- */
@@ -698,6 +714,15 @@
   }
 
   /* --- ANIMATIONS --- */
+
+  @keyframes panGrid {
+    from { background-position: 0 0; }
+    to { background-position: 600px 600px; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(197,165,90,0.2); }
+    50% { transform: translateY(-12px); box-shadow: 0 32px 72px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,165,90,0.4); }
+  }
   @keyframes fadeUp {
     0% { opacity: 0; transform: translateY(40px); filter: blur(12px); }
     100% { opacity: 1; transform: translateY(0); filter: blur(0); }
@@ -713,6 +738,21 @@
   .slide.active > *:nth-child(3) { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both; }
   .slide.active > *:nth-child(4) { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both; }
   .slide.active > *:nth-child(5) { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both; }
+  .slide.active .stagger-1 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.10s both; }
+  .slide.active .stagger-2 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.20s both; }
+  .slide.active .stagger-3 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
+  .slide.active .stagger-4 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.40s both; }
+  .slide.active .stagger-5 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.50s both; }
+  .slide.active .stagger-6 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.60s both; }
+  .slide.active .stagger-7 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.70s both; }
+  .slide.active .stagger-8 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.80s both; }
+  .slide.active .stagger-9 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 0.90s both; }
+  .slide.active .stagger-10 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.00s both; }
+  .slide.active .stagger-11 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.10s both; }
+  .slide.active .stagger-12 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.20s both; }
+  .slide.active .stagger-13 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.30s both; }
+  .slide.active .stagger-14 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.40s both; }
+  .slide.active .stagger-15 { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) 1.50s both; }
 </style>
 </head>
 <body class="grid-bg">
@@ -738,18 +778,18 @@
 
 
 <!-- SLIDE NAV BUTTONS -->
-<button id="btn-prev" class="nav-btn prev-btn"><i class="ph-bold ph-caret-left"></i></button>
-<button id="btn-next" class="nav-btn next-btn"><i class="ph-bold ph-caret-right"></i></button>
+<button id="btn-prev" class="nav-btn prev-btn"><i class="ph-light ph-caret-left"></i></button>
+<button id="btn-next" class="nav-btn next-btn"><i class="ph-light ph-caret-right"></i></button>
 
 <!-- SLIDE COUNTER -->
 <div class="slide-counter" id="counter">1 / 9</div>
 
 <!-- SLIDE 1: HERO -->
-<section class="slide hero" id="hero">
+ hero" id="hero">
   <div class="hero-content">
     <img src="app/web/logo.png" alt="Beriwo Logo" class="hero-logo">
     <h1 class="hero-title">Authorized to Act.<br><span>Never Trusted to Hold the Keys.</span></h1>
-    <p class="hero-sub">An autonomous AI executive assistant that reads your Gmail, manages your Calendar, and searches your Drive — secured by Auth0 Token Vault.</p>
+    <p class="hero-sub">Your **Autonomous AI Operator** that reads your Gmail, manages your Calendar, and searches your Drive — secured by Auth0 Token Vault.</p>
     <div class="hero-links">
       <a href="https://beriwo-inc.web.app" class="btn btn-gold" target="_blank"><i class="ph-fill ph-play-circle"></i>&ensp;Live Demo</a>
       <a href="https://github.com/Medialordofficial/Beriwo" class="btn btn-outline" target="_blank"><i class="ph-fill ph-github-logo"></i>&ensp;GitHub</a>
@@ -822,32 +862,32 @@
     <p>Deep integration across the entire authorization lifecycle</p>
   </div>
   <div class="features-grid">
-    <div class="feature-card">
+    <div class="feature-card stagger-2">
       <div class="feature-icon" style="background:rgba(25,118,210,0.12); color:var(--blue-light)"><i class="ph-fill ph-lock-key"></i></div>
       <h3>Token Vault</h3>
       <p>Every tool wrapped with <code>defineProtectedTool()</code>. AI requests tool calls — credentials resolved server-side. The model never sees a token.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card stagger-3">
       <div class="feature-icon" style="background:rgba(197,165,90,0.12); color:var(--gold)"><i class="ph-fill ph-gear-six"></i></div>
       <h3>Post-Login Action</h3>
       <p>Custom Auth0 Action enriches JWTs with <code>ai_tier</code>, <code>ai_tools</code>, <code>ai_can_write</code>, <code>ai_max_calls</code> claims at login time.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card stagger-4">
       <div class="feature-icon" style="background:rgba(16,185,129,0.12); color:var(--green)"><i class="ph-fill ph-check-circle"></i></div>
       <h3>Consent Gate</h3>
       <p>Write tools physically removed from executor unless user explicitly approves. Code-level enforcement, not a prompt instruction.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card stagger-5">
       <div class="feature-icon" style="background:rgba(239,68,68,0.12); color:#F87171"><i class="ph-fill ph-shield-chevron"></i></div>
       <h3>Step-Up Auth</h3>
       <p>High-risk ops check JWT <code>auth_time</code>. If login is older than 5 minutes, re-authentication required via Auth0 popup.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card stagger-6">
       <div class="feature-icon" style="background:rgba(168,85,247,0.12); color:#C084FC"><i class="ph-fill ph-list-magnifying-glass"></i></div>
       <h3>FGA Audit Trail</h3>
       <p>Every tool authorization decision logged: userId, action, resource, decision (allow/deny), reason, tier, timestamp.</p>
     </div>
-    <div class="feature-card">
+    <div class="feature-card stagger-7">
       <div class="feature-icon" style="background:rgba(251,146,60,0.12); color:#FB923C"><i class="ph-bold ph-arrows-clockwise"></i></div>
       <h3>Token Refresh</h3>
       <p>Google social connection with <code>offline_access</code>. Automatic token refresh when the 1-hour access token expires.</p>
@@ -860,22 +900,22 @@
   <span class="timestamp" style="margin-bottom: 24px;">AUTH0 HACKATHON CRITERIA</span>
   <h2>System <span>Architecture</span></h2>
   <div class="layers">
-    <div class="layer">
+    <div class="layer stagger-2">
       <div class="layer-num" style="color: var(--blue-light);"><i class="ph-fill ph-lock-key"></i></div>
       <div class="layer-name">Token Vault</div>
       <div class="layer-desc">The AI never touches credentials. API calls are managed via request execution, and the Vault securely resolves access tokens completely server-side.</div>
     </div>
-    <div class="layer">
+    <div class="layer stagger-3">
       <div class="layer-num" style="color: var(--green);"><i class="ph-fill ph-cube"></i></div>
       <div class="layer-name">Sandboxing</div>
       <div class="layer-desc">A strict 3-phase pipeline separates planning, execution, and synthesis. The model logic boundary physically isolates user communication from tool execution.</div>
     </div>
-    <div class="layer">
+    <div class="layer stagger-4">
       <div class="layer-num" style="color: var(--red);"><i class="ph-fill ph-shield-chevron"></i></div>
       <div class="layer-name">Step-up Auth</div>
       <div class="layer-desc">High-risk and sensitive write operations mandate a JWT <code>auth_time</code> evaluation. Sessions older than 5 minutes trigger an immediate re-authorization challenge.</div>
     </div>
-    <div class="layer">
+    <div class="layer stagger-5">
       <div class="layer-num" style="color: var(--gold);"><i class="ph-fill ph-hand-palm"></i></div>
       <div class="layer-name">Consent Flow</div>
       <div class="layer-desc">All state-changing tools are physically removed from the AI's execution capabilities until the human explicitly grants approval through an interactive UI gate.</div>
@@ -888,27 +928,27 @@
   <span class="timestamp">2:30 – 3:00 &nbsp;·&nbsp; ARCHITECTURE RECAP</span>
   <h2>5 Layers of <span>Security</span></h2>
   <div class="layers">
-    <div class="layer">
+    <div class="layer stagger-2">
       <div class="layer-num">1</div>
       <div class="layer-name">Sandboxed AI</div>
       <div class="layer-desc">3-phase pipeline — AI never has tools + user communication simultaneously. Prevents prompt injection exploiting tool access.</div>
     </div>
-    <div class="layer">
+    <div class="layer stagger-3">
       <div class="layer-num">2</div>
       <div class="layer-name">RBAC</div>
       <div class="layer-desc">Auth0 Action enriches JWT with tier claims → Policy Gate physically removes unauthorized tools from the executor.</div>
     </div>
-    <div class="layer">
+    <div class="layer stagger-4">
       <div class="layer-num">3</div>
       <div class="layer-name">Consent Gate</div>
       <div class="layer-desc">Write tools don't exist in the executor's registry unless a human approves. Code enforcement, not prompt instructions.</div>
     </div>
-    <div class="layer">
+    <div class="layer stagger-5">
       <div class="layer-num">4</div>
       <div class="layer-name">Step-Up Auth</div>
       <div class="layer-desc">JWT <code>auth_time</code> check with 5-minute window. Stale sessions require re-authentication for sensitive operations.</div>
     </div>
-    <div class="layer">
+    <div class="layer stagger-6">
       <div class="layer-num">5</div>
       <div class="layer-name">FGA Audit</div>
       <div class="layer-desc">Every decision (allow/deny) logged with user, action, resource, decision, and reason. Full compliance trail.</div>
@@ -921,35 +961,35 @@
   <span class="timestamp">1:45 – 2:30 &nbsp;·&nbsp; LIVE DEMO: WRITE OPS</span>
   <h2>How the <span>Consent Flow</span> Works</h2>
   <div class="flow-steps">
-    <div class="flow-step">
+    <div class="flow-step stagger-2">
       <div class="flow-dot blue"><i class="ph-fill ph-chat-circle-text"></i></div>
       <div class="flow-info">
         <h4>User: "Send an email to my wife tina Javynyuy and tell her to pick up my son ethan from the daycare at 15:00, since i wont be able to close earlier than planned.."</h4>
         <p>Natural language request involving a write operation.</p>
       </div>
     </div>
-    <div class="flow-step">
+    <div class="flow-step stagger-3">
       <div class="flow-dot blue"><i class="ph-fill ph-clipboard-text"></i></div>
       <div class="flow-info">
         <h4>Phase 1 — Planner (NO tools, NO tokens)</h4>
         <p>Plans: [read_email, send_email]. Cannot execute anything.</p>
       </div>
     </div>
-    <div class="flow-step">
+    <div class="flow-step stagger-4">
       <div class="flow-dot red"><i class="ph-bold ph-prohibit"></i></div>
       <div class="flow-info">
         <h4>Policy Gate — send_email BLOCKED</h4>
         <p>RBAC ✓ (pro tier) → Consent ✗ (not approved) → FGA logs DENY. Tool physically removed from executor.</p>
       </div>
     </div>
-    <div class="flow-step">
+    <div class="flow-step stagger-5">
       <div class="flow-dot gold"><i class="ph-fill ph-hand-palm"></i></div>
       <div class="flow-info">
         <h4>Consent Card — User clicks "Approve"</h4>
         <p>Frontend shows blocked writes. User explicitly approves send_email.</p>
       </div>
     </div>
-    <div class="flow-step">
+    <div class="flow-step stagger-6">
       <div class="flow-dot green"><i class="ph-fill ph-check-circle"></i></div>
       <div class="flow-info">
         <h4>Policy Gate passes — Token Vault resolves credentials</h4>
@@ -963,56 +1003,56 @@
 <section class="slide timestamps" id="timestamps">
   <h2>Demo <span>Script</span></h2>
   <div class="ts-grid">
-    <div class="ts-card">
+    <div class="ts-card stagger-2">
       <div class="ts-time">0:00</div>
       <div class="ts-info">
         <h4>The Hook</h4>
         <p>Problem statement: AI agents need your data, but credentials exposure is terrifying.</p>
       </div>
     </div>
-    <div class="ts-card">
+    <div class="ts-card stagger-3">
       <div class="ts-time">0:15</div>
       <div class="ts-info">
         <h4>Intro</h4>
         <p>Beriwo reveal — 10 tools, Token Vault, zero-trust. Show live app.</p>
       </div>
     </div>
-    <div class="ts-card">
+    <div class="ts-card stagger-4">
       <div class="ts-time">0:30</div>
       <div class="ts-info">
         <h4>Auth0 Login + RBAC</h4>
         <p>Auth0 Universal Login, Post-Login Action, JWT custom claims for AI tiers.</p>
       </div>
     </div>
-    <div class="ts-card">
+    <div class="ts-card stagger-5">
       <div class="ts-time">1:00</div>
       <div class="ts-info">
         <h4>Live Demo — Reads</h4>
         <p>Query emails + calendar. Show 3-phase pipeline streaming in real time.</p>
       </div>
     </div>
-    <div class="ts-card">
+    <div class="ts-card stagger-6">
       <div class="ts-time">1:45</div>
       <div class="ts-info">
         <h4>Live Demo — Writes</h4>
         <p>Trigger send_email → consent card → approve → success. Show FGA audit.</p>
       </div>
     </div>
-    <div class="ts-card">
+    <div class="ts-card stagger-7">
       <div class="ts-time">2:30</div>
       <div class="ts-info">
         <h4>Architecture Recap</h4>
         <p>5 security layers diagram. Sandboxed AI, RBAC, Consent, Step-up, FGA.</p>
       </div>
     </div>
-    <div class="ts-card">
+    <div class="ts-card stagger-8">
       <div class="ts-time">3:00</div>
       <div class="ts-info">
         <h4>The Insight</h4>
         <p>Feedback for Auth0: first-class SPA flow, built-in AI RBAC, FGA integration.</p>
       </div>
     </div>
-    <div class="ts-card">
+    <div class="ts-card stagger-9">
       <div class="ts-time">3:20</div>
       <div class="ts-info">
         <h4>Close</h4>
@@ -1028,21 +1068,21 @@
   <div class="insight-box">
     <h2>Our <span>Insight</span> for Auth0</h2>
     <div class="insight-items">
-      <div class="insight-item">
+      <div class="insight-item stagger-2">
         <div class="insight-num">1</div>
         <div>
           <h4>First-Class SPA Flow</h4>
           <p>Leverage <code>read:user_idp_tokens</code> internally so SPA developers get seamless Token Vault without the Management API hybrid workaround.</p>
         </div>
       </div>
-      <div class="insight-item">
+      <div class="insight-item stagger-3">
         <div class="insight-num">2</div>
         <div>
           <h4>Built-In RBAC for AI Tools</h4>
           <p>Read custom claims from Auth0 Actions to automatically filter tool availability based on user tier — no manual policy gate code needed.</p>
         </div>
       </div>
-      <div class="insight-item">
+      <div class="insight-item stagger-4">
         <div class="insight-num">3</div>
         <div>
           <h4>Native FGA Integration</h4>
